@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { GoogleTagManager } from "@next/third-parties/google";
 import localFont from "next/font/local";
 import Link from "next/link";
 import "./globals.css";
 import { Mark } from "@/components/icons";
 import { SiteHeader } from "@/components/site-header";
 import { SITE_NAME, SITE_URL } from "@/lib/env";
+
+/** Google Tag Manager container. GA4 and any other tags are configured inside GTM. */
+const GTM_ID = "GTM-WKD9K9PC";
 
 /** SRS §06: Inter is served locally (OFL licence in src/fonts). */
 const inter = localFont({
@@ -72,7 +76,17 @@ const FOOTER = [
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={`${inter.variable} ${display.variable} h-full antialiased`}>
+      <GoogleTagManager gtmId={GTM_ID} />
       <body className="flex min-h-full flex-col font-sans">
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+            title="Google Tag Manager"
+          />
+        </noscript>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-3"
