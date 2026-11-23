@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SearchIcon } from "@/components/icons";
 
 type Suggestion = { group: string; label: string; sub?: string | null; href?: string; value?: string; id?: string };
 
@@ -128,7 +129,7 @@ function Combobox({
         role="listbox"
         aria-label={`${label} suggestions`}
         hidden={!open}
-        className="card absolute top-full right-0 left-0 z-20 mt-1 max-h-80 overflow-auto py-1"
+        className="card absolute top-full right-0 left-0 z-20 mt-1 max-h-80 overflow-auto py-1 shadow-(--shadow-lift)"
       >
         {items.map((s, i) => {
           const header = s.group !== items[i - 1]?.group ? s.group : null;
@@ -167,7 +168,7 @@ function Combobox({
 export function SearchBox({ q, where, geo }: { q?: string; where?: string; geo?: string }) {
   const [geoId, setGeoId] = useState(geo ?? "");
   return (
-    <form action="/search" method="get" role="search" aria-label="Find a hospital" className="card p-4">
+    <form action="/search" method="get" role="search" aria-label="Find a hospital" className="card p-4 text-ink shadow-(--shadow-lift) sm:p-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-end">
         <Combobox
           name="q"
@@ -186,7 +187,8 @@ export function SearchBox({ q, where, geo }: { q?: string; where?: string; geo?:
           onPick={(s) => setGeoId(s?.id ?? "")}
         />
         {geoId ? <input type="hidden" name="geo" value={geoId} /> : null}
-        <button type="submit" className="btn-primary md:w-auto">
+        <button type="submit" className="btn-primary min-h-12 px-6 md:w-auto">
+          <SearchIcon />
           Search
         </button>
       </div>

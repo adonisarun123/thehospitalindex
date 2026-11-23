@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 
 export default function Sources() {
   return (
-    <div className="prose-page mx-auto max-w-3xl">
-      <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight font-bold">Sources, trust labels and sorting</h1>
+    <div className="wrap py-8"><div className="prose-page max-w-3xl">
+      <h1 className="h-page">Sources, trust labels and sorting</h1>
       <p className="mt-4 text-lg">Every profile describes one physical branch. Each important fact carries a label saying who supplied it and when it was checked.</p>
 
       <h2>The labels</h2>
@@ -54,6 +54,6 @@ export default function Sources() {
         Anyone can <Link href="/corrections" className="link">suggest a correction</Link>. Hospitals can propose changes to their own branch; editors
         decide what is published.
       </p>
-    </div>
+    </div></div>
   );
 }

@@ -3,8 +3,8 @@ import { SearchBox } from "@/components/search-box";
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-3xl py-10">
-      <h1 className="text-3xl font-bold">We could not find that page</h1>
+    <div className="wrap py-10"><div className="max-w-3xl">
+      <h1 className="h-page">We could not find that page</h1>
       <p className="mt-3">The address may be mistyped, or the listing may have been removed. Try a search, or browse from a state.</p>
       <div className="mt-6">
         <SearchBox />
@@ -21,6 +21,6 @@ export default function NotFound() {
           </Link>
         </li>
       </ul>
-    </div>
+    </div></div>
   );
 }

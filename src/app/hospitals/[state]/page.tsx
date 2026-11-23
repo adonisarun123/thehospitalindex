@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { Breadcrumbs, type Crumb } from "@/components/breadcrumbs";
+import type { Crumb } from "@/components/breadcrumbs";
+import { PageHeader } from "@/components/page-header";
 import { JsonLd } from "@/components/json-ld";
 import { hubIsIndexable } from "@/lib/gates";
 import { POLICY } from "@/lib/policy";
@@ -54,14 +55,20 @@ export default async function StatePage(props: Props) {
   ];
   return (
     <>
-      <Breadcrumbs items={crumbs} />
       <JsonLd data={breadcrumbLd(crumbs)} />
-      <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight font-bold">Hospitals in {state.name}</h1>
-      {state.hasReviewedContext ? <p className="mt-3 max-w-3xl">{state.localContext}</p> : null}
-
+      <PageHeader crumbs={crumbs} title={`Hospitals in ${state.name}`}>
+        {state.hasReviewedContext ? <p className="mt-3 max-w-3xl">{state.localContext}</p> : null}
+        {counts.published > 0 ? (
+          <p className="mt-2 text-muted">
+            {counts.published} published {counts.published === 1 ? "branch" : "branches"}. This is our coverage, not the total number of hospitals in{" "}
+            {state.name}.
+          </p>
+        ) : null}
+      </PageHeader>
+      <div className="wrap">
       {counts.published === 0 ? (
-        <div className="card mt-6 max-w-3xl p-6">
-          <p className="font-semibold">We have not published any hospital branches in {state.name} yet.</p>
+        <div className="card mt-8 max-w-3xl p-6 sm:p-8">
+          <p className="display text-xl font-bold">We have not published any hospital branches in {state.name} yet.</p>
           <p className="mt-2">
             This is a gap in directory coverage, not a statement that there are no hospitals here. Branches appear once their identity, address and
             a contact route have been checked against a source.
@@ -86,18 +93,14 @@ export default async function StatePage(props: Props) {
         </div>
       ) : (
         <>
-          <p className="meta mt-2">
-            {counts.published} published {counts.published === 1 ? "branch" : "branches"} · directory coverage, not the total number of hospitals in{" "}
-            {state.name}.
-          </p>
           <section aria-labelledby="cities-h" className="mt-8">
-            <h2 id="cities-h" className="text-2xl font-semibold">
+            <h2 id="cities-h" className="h-section">
               Cities, towns and villages
             </h2>
             <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {cities.map((c) => (
                 <li key={c.id}>
-                  <Link href={urls.city(state.slug, c.slug)} className="card flex min-h-16 items-center justify-between gap-3 p-4 text-ink no-underline hover:border-teal">
+                  <Link href={urls.city(state.slug, c.slug)} className="card-link flex min-h-16 items-center justify-between gap-3 p-4 text-ink no-underline">
                     <span className="font-semibold">{c.name}</span>
                     <span className="meta">{c.published}</span>
                   </Link>
@@ -107,7 +110,7 @@ export default async function StatePage(props: Props) {
           </section>
           {districts.length > 0 ? (
             <section aria-labelledby="districts-h" className="mt-8">
-              <h2 id="districts-h" className="text-2xl font-semibold">
+              <h2 id="districts-h" className="h-section">
                 Browse by district
               </h2>
               <ul className="mt-3 grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -124,6 +127,7 @@ export default async function StatePage(props: Props) {
           ) : null}
         </>
       )}
+      </div>
     </>
   );
 }

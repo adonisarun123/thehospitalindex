@@ -4,9 +4,12 @@
    ink on canvas 12.3:1 · muted on canvas 6.6:1 · white on teal 7.5:1 · error on surface 7.2:1 */
 @theme {
   --color-ink: #183347;
+  --color-ink-deep: #0f2433;
   --color-teal: #075f59;
   --color-teal-dark: #054843;
+  --color-teal-deep: #053f3b;
   --color-teal-tint: #e3efed;
+  --color-mint: #9fe0d2;
   --color-canvas: #f6f8f6;
   --color-surface: #ffffff;
   --color-muted: #475c64;
@@ -15,9 +18,12 @@
   --color-error-tint: #f7e9e8;
   --color-amber-tint: #fbf1dc;
   --color-amber-ink: #6b4a00;
+  --color-star: #b7791f;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Noto Sans", "Segoe UI", sans-serif;
-  --radius-card: 14px;
-  --shadow-card: 0 1px 2px rgb(24 51 71 / 0.06);
+  --font-display: var(--font-display-face), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 16px;
+  --shadow-card: 0 1px 2px rgb(24 51 71 / 0.05), 0 1px 1px rgb(24 51 71 / 0.03);
+  --shadow-lift: 0 10px 30px -12px rgb(15 36 51 / 0.28), 0 2px 6px rgb(15 36 51 / 0.06);
 }
 
 html {
@@ -49,8 +55,26 @@ a {
 @utility card {
   @apply rounded-(--radius-card) border border-line bg-surface shadow-(--shadow-card);
 }
+/* A card that is itself a link or holds one primary link: responds to the pointer. */
+@utility card-link {
+  @apply card transition-[border-color,box-shadow] duration-150 hover:border-teal hover:shadow-(--shadow-lift);
+}
+@utility display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-variation-settings: "opsz" 48;
+}
+@utility h-page {
+  @apply display text-[clamp(1.75rem,4vw,2.5rem)] leading-[1.1] font-bold;
+}
+@utility h-section {
+  @apply display text-[clamp(1.375rem,2.4vw,1.75rem)] leading-tight font-bold;
+}
+@utility wrap {
+  @apply mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8;
+}
 @utility btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-base font-semibold no-underline;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-base font-semibold no-underline transition-colors duration-150;
 }
 @utility btn-primary {
   @apply btn bg-teal text-white hover:bg-teal-dark;
@@ -65,7 +89,7 @@ a {
   @apply text-sm text-muted;
 }
 @utility field {
-  @apply min-h-11 w-full rounded-lg border border-muted/60 bg-surface px-3 text-base text-ink placeholder:text-muted;
+  @apply min-h-12 w-full rounded-xl border border-muted/60 bg-surface px-3.5 text-base text-ink placeholder:text-muted;
 }
 @utility chip {
   @apply inline-flex items-center rounded-full border border-line bg-canvas px-3 py-1 text-sm text-ink;

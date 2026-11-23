@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import Link from "next/link";
 import "./globals.css";
+import { Mark } from "@/components/icons";
 import { SiteHeader } from "@/components/site-header";
 import { SITE_NAME, SITE_URL } from "@/lib/env";
 
@@ -12,6 +13,12 @@ const inter = localFont({
     { path: "../fonts/inter-latin-ext-wght-normal.woff2", weight: "100 900", style: "normal" },
   ],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const display = localFont({
+  src: [{ path: "../fonts/bricolage-grotesque-latin-wght-normal.woff2", weight: "200 800", style: "normal" }],
+  variable: "--font-display-face",
   display: "swap",
 });
 
@@ -26,18 +33,36 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#075f59", width: "device-width", initialScale: 1 };
 
-const FOOTER_LINKS = [
-  ["/how-reviews-work", "How reviews work"],
-  ["/sources", "Sources and sorting"],
-  ["/coverage", "Directory coverage"],
-  ["/corrections", "Suggest a correction"],
-  ["/privacy", "Privacy"],
-  ["/grievance", "Grievances"],
+const FOOTER = [
+  {
+    title: "Find care",
+    links: [
+      ["/hospitals", "Browse by state"],
+      ["/specialties", "Specialties"],
+      ["/search", "Search hospitals"],
+    ],
+  },
+  {
+    title: "How it works",
+    links: [
+      ["/how-reviews-work", "How reviews work"],
+      ["/sources", "Sources and sorting"],
+      ["/coverage", "Directory coverage"],
+    ],
+  },
+  {
+    title: "Help",
+    links: [
+      ["/corrections", "Suggest a correction"],
+      ["/privacy", "Privacy"],
+      ["/grievance", "Grievances"],
+    ],
+  },
 ] as const;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en-IN" className={`${inter.variable} ${display.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <a
           href="#main"
@@ -46,27 +71,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to main content
         </a>
         <SiteHeader />
-        <main id="main" className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main id="main" className="flex-1">
           {children}
         </main>
-        <footer className="mt-12 border-t border-line bg-surface">
-          <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
-            <nav aria-label="About this directory">
-              <ul className="flex flex-wrap gap-x-6 gap-y-1">
-                {FOOTER_LINKS.map(([href, label]) => (
-                  <li key={href}>
-                    <Link href={href} className="link inline-flex min-h-11 items-center">
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-            <p className="meta mt-4 max-w-3xl">
-              {SITE_NAME} lists facts about hospital branches and the experiences of patients. It does not give
-              medical advice, rank clinical outcomes or decide insurance eligibility. In an emergency, call your local
-              emergency number.
-            </p>
+        <footer className="mt-16 bg-ink-deep text-white">
+          <div className="wrap grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+            <div>
+              <p className="flex items-center gap-2">
+                <Mark className="text-mint" />
+                <span className="display text-lg font-bold">{SITE_NAME}</span>
+              </p>
+              <p className="mt-3 max-w-sm text-sm text-white/80">
+                Facts about hospital branches and the experiences of patients. No medical advice, no outcome rankings and no insurance
+                decisions. In an emergency, call your local emergency number.
+              </p>
+            </div>
+            {FOOTER.map((col) => (
+              <nav key={col.title} aria-label={col.title}>
+                <h2 className="font-semibold">{col.title}</h2>
+                <ul className="mt-2">
+                  {col.links.map(([href, label]) => (
+                    <li key={href}>
+                      <Link href={href} className="inline-flex min-h-11 items-center text-white/85 underline-offset-4 hover:text-white hover:underline">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
           </div>
         </footer>
       </body>

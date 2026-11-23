@@ -27,6 +27,9 @@ export function newPublicId(length = 6): string {
 
 export const PINCODE_RE = /^[1-9][0-9]{5}$/;
 
+const ACRONYMS: Record<string, string> = { opd: "OPD", ppp: "PPP", icu_beds: "ICU beds", nicu_beds: "NICU beds", picu_beds: "PICU beds" };
+
 export function titleCaseEnum(value: string): string {
+  if (ACRONYMS[value]) return ACRONYMS[value];
   return value.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 }

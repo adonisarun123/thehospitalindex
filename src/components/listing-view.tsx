@@ -38,7 +38,6 @@ export function ListingView(p: ListingViewProps) {
 
   return (
     <>
-      <Breadcrumbs items={p.crumbs} />
       <JsonLd data={breadcrumbLd(p.crumbs)} />
       {result.items.length > 0 && !listing.hasFilters ? (
         <JsonLd
@@ -51,20 +50,26 @@ export function ListingView(p: ListingViewProps) {
         />
       ) : null}
 
-      <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight font-bold">{p.heading}</h1>
-      {p.top}
-      {p.context ? (
-        <div className="mt-3 max-w-3xl">
-          <p>{p.context.text}</p>
-          {p.context.reviewedAt ? (
-            <p className="meta mt-1">
-              Local context reviewed {p.context.reviewedAt.slice(0, 10)}
-              {p.context.owner ? ` by ${p.context.owner}` : ""}
-            </p>
+      <div className="border-b border-line bg-surface">
+        <div className="wrap pt-4 pb-6">
+          <Breadcrumbs items={p.crumbs} />
+          <h1 className="h-page">{p.heading}</h1>
+          {p.top}
+          {p.context ? (
+            <div className="mt-3 max-w-3xl">
+              <p>{p.context.text}</p>
+              {p.context.reviewedAt ? (
+                <p className="meta mt-1">
+                  Local context reviewed {p.context.reviewedAt.slice(0, 10)}
+                  {p.context.owner ? ` by ${p.context.owner}` : ""}
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </div>
-      ) : null}
+      </div>
 
+      <div className="wrap">
       <div className="mt-6 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         {/* §06: a filter rail on wide screens, a collapsible sheet below 1024px. */}
         <aside aria-label="Filters">
@@ -76,8 +81,8 @@ export function ListingView(p: ListingViewProps) {
               <Filters idPrefix="sheet" action={p.basePath} listing={listing} show={show} />
             </div>
           </details>
-          <div className="card hidden p-4 lg:block">
-            <h2 className="mb-3 text-lg font-semibold">Filters</h2>
+          <div className="card sticky top-20 hidden max-h-[calc(100vh-6rem)] overflow-y-auto p-4 lg:block">
+            <h2 className="display mb-3 text-lg font-bold">Filters</h2>
             <Filters idPrefix="rail" action={p.basePath} listing={listing} show={show} />
           </div>
         </aside>
@@ -113,7 +118,7 @@ export function ListingView(p: ListingViewProps) {
           ) : null}
 
           {result.items.length > 0 ? (
-            <ul className="mt-4 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+            <ul className="mt-4 grid gap-4 xl:grid-cols-2">
               {result.items.map((b) => (
                 <li key={b.id}>
                   <BranchCard branch={b} headingLevel="h3" />
@@ -159,6 +164,7 @@ export function ListingView(p: ListingViewProps) {
           <Pagination base={p.basePath} query={listing.query} page={result.page} pageCount={result.pageCount} />
           {p.children}
         </section>
+      </div>
       </div>
     </>
   );

@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function HowReviewsWork() {
   return (
-    <div className="prose-page mx-auto max-w-3xl">
-      <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight font-bold">How patient reviews work</h1>
+    <div className="wrap py-8"><div className="prose-page max-w-3xl">
+      <h1 className="h-page">How patient reviews work</h1>
       <p className="mt-4 text-lg">
         A review on this site is a firsthand account from a patient whose visit evidence our team has checked. Reading reviews never needs an account.
       </p>
@@ -58,6 +58,6 @@ export default function HowReviewsWork() {
       <p className="meta mt-8">
         Review submission is not open yet. See also <Link href="/sources" className="link">how we source and label facts</Link>.
       </p>
-    </div>
+    </div></div>
   );
 }

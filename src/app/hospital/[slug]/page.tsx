@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 import { Breadcrumbs, type Crumb } from "@/components/breadcrumbs";
+import { InitialsTile } from "@/components/branch-card";
+import { ExternalIcon, PhoneIcon, PinIcon, RouteIcon, StarIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
 import { TrustLabel, formatDate } from "@/components/trust-label";
 import { displayRating } from "@/lib/gates";
@@ -77,8 +79,8 @@ const hoursText = (h: Hours) =>
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-h`} className="card mt-6 p-5 sm:p-6">
-      <h2 id={`${id}-h`} className="text-2xl font-semibold">
+    <section id={id} aria-labelledby={`${id}-h`} className="card mt-6 scroll-mt-24 p-5 sm:p-6">
+      <h2 id={`${id}-h`} className="h-section">
         {title}
       </h2>
       <div className="mt-4">{children}</div>
@@ -121,82 +123,129 @@ export default async function BranchPage(props: Props) {
   ];
 
   return (
-    <article>
-      <Breadcrumbs items={crumbs} />
+    <article className="pb-24 lg:pb-0">
       <JsonLd data={breadcrumbLd(crumbs)} />
       {b.status === "published" ? <JsonLd data={hospitalLd(b, p)} /> : null}
 
-      {closed || b.status === "disputed" ? (
-        <p role="status" className="mb-4 rounded-lg border border-error bg-error-tint p-4 font-semibold text-error">
-          <span aria-hidden="true">! </span>
-          {b.status === "permanently_closed"
-            ? "This branch is recorded as permanently closed."
-            : b.status === "temporarily_closed"
-              ? "This branch is recorded as temporarily closed."
-              : "Some details of this branch are under review."}
-          {b.statusReason ? <span className="font-normal"> {b.statusReason}</span> : null}
-        </p>
-      ) : null}
+      <div className="border-b border-line bg-surface">
+        <div className="wrap pt-4 pb-6">
+          <Breadcrumbs items={crumbs} />
+          {closed || b.status === "disputed" ? (
+            <p role="status" className="mb-4 rounded-xl border border-error bg-error-tint p-4 font-semibold text-error">
+              <span aria-hidden="true">! </span>
+              {b.status === "permanently_closed"
+                ? "This branch is recorded as permanently closed."
+                : b.status === "temporarily_closed"
+                  ? "This branch is recorded as temporarily closed."
+                  : "Some details of this branch are under review."}
+              {b.statusReason ? <span className="font-normal"> {b.statusReason}</span> : null}
+            </p>
+          ) : null}
+          <header className="flex gap-4 sm:gap-5">
+            <InitialsTile name={b.displayName} size="lg" />
+            <div className="min-w-0">
+              <h1 className="h-page [overflow-wrap:anywhere]">{b.displayName}</h1>
+              {b.branchQualifier ? <p className="display mt-1 text-xl font-bold text-teal-dark">{b.branchQualifier} branch</p> : null}
+              <p className="mt-2 flex items-start gap-1.5 text-lg">
+                <PinIcon className="mt-1 shrink-0 text-muted" />
+                {[b.locality?.name, b.settlement.name, b.state.name].filter(Boolean).join(", ")}
+              </p>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                <li className="chip">{titleCaseEnum(b.facilityType)}</li>
+                {b.ownership ? <li className="chip">{titleCaseEnum(b.ownership)}</li> : null}
+                {b.orgName ? <li className="chip">Part of {b.orgName} (network)</li> : null}
+                {b.hasEmergency === "yes" && b.emergencyIsCurrent ? (
+                  <li className="chip border-teal bg-teal-tint font-semibold text-teal-dark">Emergency department</li>
+                ) : null}
+              </ul>
+              <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+                {rating ? (
+                  <a href="#reviews" className="flex items-center gap-2 text-ink no-underline">
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-ink px-2.5 py-1 text-lg font-bold text-white">
+                      <StarIcon className="size-4" />
+                      {rating}
+                      <span className="sr-only"> out of 5</span>
+                    </span>
+                    <span className="underline underline-offset-4">
+                      {b.reviewCount} patient {b.reviewCount === 1 ? "review" : "reviews"}
+                    </span>
+                    <span className="meta">{VISIT_LABEL}</span>
+                  </a>
+                ) : (
+                  <span className="meta text-base">No patient reviews here yet</span>
+                )}
+                {b.lastCheckedAt ? <span className="meta">Listing last checked {formatDate(b.lastCheckedAt)}</span> : null}
+              </p>
+            </div>
+          </header>
+        </div>
+        <nav aria-label="On this page" className="wrap overflow-x-auto">
+          <ul className="flex gap-1 whitespace-nowrap">
+            {anchors.map(([id, label]) => (
+              <li key={id}>
+                <a href={`#${id}`} className="inline-flex min-h-12 items-center border-b-2 border-transparent px-3 font-semibold text-ink hover:border-teal hover:text-teal-dark">
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
 
-      <header className="card p-5 sm:p-6">
-        <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] leading-tight font-bold [overflow-wrap:anywhere]">{name}</h1>
-        <p className="mt-2 text-lg">
-          {[b.locality?.name, b.settlement.name, b.state.name].filter(Boolean).join(", ")}
-        </p>
-        <p className="meta mt-1">
-          {[titleCaseEnum(b.facilityType), b.ownership ? titleCaseEnum(b.ownership) : null].filter(Boolean).join(" · ")}
-          {b.orgName ? <> · Part of {b.orgName} (network)</> : null}
-          {b.lastCheckedAt ? <> · Last checked {formatDate(b.lastCheckedAt)}</> : null}
-        </p>
-        <p className="mt-3">
-          {rating ? (
-            <a href="#reviews" className="text-ink">
-              <span className="text-lg font-semibold">
-                <span aria-hidden="true">★ </span>
-                {rating}
-              </span>
-              <span className="sr-only"> out of 5</span>{" "}
-              <span className="meta">
-                from {b.reviewCount} patient {b.reviewCount === 1 ? "review" : "reviews"} · {VISIT_LABEL}
-              </span>
-            </a>
-          ) : (
-            <span className="meta">No patient reviews here yet</span>
-          )}
-        </p>
-        {mainPhone || canDirect || website ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {mainPhone ? (
-              <a href={`tel:${mainPhone.value}`} className="btn-primary">
-                Call {mainPhone.isShared ? "network switchboard" : "hospital"}
-              </a>
-            ) : null}
-            {canDirect ? (
-              <a href={`https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}`} rel="noopener nofollow" className="btn-quiet">
-                Directions<span className="sr-only"> (opens Google Maps)</span>
-              </a>
-            ) : null}
-            {website ? (
-              <a href={website.value} rel="noopener nofollow" className="btn-quiet">
-                Official website<span aria-hidden="true"> ↗</span>
-              </a>
-            ) : null}
+      <div className="wrap grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <aside aria-label="Contact and location" className="mt-6 lg:order-2">
+          <div className="card p-5 lg:sticky lg:top-20">
+            <h2 className="display text-lg font-bold">Contact this branch</h2>
+            {mainPhone || canDirect || website ? (
+              <div className="mt-3 flex flex-col gap-2">
+                {mainPhone ? (
+                  <a href={`tel:${mainPhone.value}`} className="btn-primary">
+                    <PhoneIcon className="size-4" />
+                    Call {mainPhone.isShared ? "network switchboard" : "hospital"}
+                  </a>
+                ) : null}
+                {canDirect ? (
+                  <a href={`https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}`} rel="noopener nofollow" className="btn-quiet">
+                    <RouteIcon className="size-4" />
+                    Get directions<span className="sr-only"> (opens Google Maps)</span>
+                  </a>
+                ) : null}
+                {website ? (
+                  <a href={website.value} rel="noopener nofollow" className="btn-quiet">
+                    Official website
+                    <ExternalIcon />
+                  </a>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-2">{closed ? "Contact actions are removed for closed branches." : "No checked contact route is published yet."}</p>
+            )}
+            <dl className="mt-5 space-y-4 border-t border-line pt-4">
+              <div>
+                <dt className="font-semibold">Address</dt>
+                <dd>
+                  {[b.addressLine1, b.addressLine2, b.locality?.name, b.settlement.name, b.state.name].filter(Boolean).join(", ")}
+                  {b.pincode ? ` ${b.pincode}` : ""}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-semibold">Emergency department</dt>
+                <dd>
+                  {b.hasEmergency === "yes" ? `Yes${b.emergency24h === "yes" ? ", open 24 hours" : ""}` : b.hasEmergency === "no" ? "No" : "Contact hospital to confirm"}
+                  {b.hasEmergency === "yes" && b.emergencyCheckedAt ? <span className="meta block">Last confirmed {formatDate(b.emergencyCheckedAt)}</span> : null}
+                </dd>
+              </div>
+            </dl>
+            <p className="meta mt-4 border-t border-line pt-4">
+              Something wrong?{" "}
+              <Link href={`/corrections?branch=${b.publicId}`} rel="nofollow" className="link">
+                Suggest a correction
+              </Link>
+            </p>
           </div>
-        ) : null}
-      </header>
+        </aside>
 
-      <nav aria-label="On this page" className="sticky top-[61px] z-20 -mx-4 mt-4 overflow-x-auto border-y border-line bg-canvas px-4 sm:mx-0 sm:px-0">
-        <ul className="flex gap-1 whitespace-nowrap">
-          {anchors.map(([id, label]) => (
-            <li key={id}>
-              <a href={`#${id}`} className="inline-flex min-h-11 items-center px-3 font-medium text-ink hover:text-teal">
-                {label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
+        <div className="min-w-0 lg:order-1">
       <Section id="overview" title="Overview">
         {b.overview ? <p className="max-w-3xl">{b.overview}</p> : null}
         <dl className={`grid gap-4 sm:grid-cols-2 ${b.overview ? "mt-5" : ""}`}>
@@ -566,11 +615,31 @@ export default async function BranchPage(props: Props) {
         </p>
       </Section>
 
-      <p className="mt-6">
-        <Link href={urls.city(b.state.slug, b.settlement.slug)} className="link inline-flex min-h-11 items-center">
-          ← More hospitals in {b.settlement.name}
-        </Link>
-      </p>
+          <p className="mt-6">
+            <Link href={urls.city(b.state.slug, b.settlement.slug)} className="btn-quiet">
+              More hospitals in {b.settlement.name}
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      {/* MOB-01: checked contact actions within thumb reach on small screens. */}
+      {mainPhone || canDirect ? (
+        <div className="fixed inset-x-0 bottom-0 z-20 flex gap-2 border-t border-line bg-surface p-3 shadow-(--shadow-lift) lg:hidden">
+          {mainPhone ? (
+            <a href={`tel:${mainPhone.value}`} className="btn-primary flex-1">
+              <PhoneIcon className="size-4" />
+              Call
+            </a>
+          ) : null}
+          {canDirect ? (
+            <a href={`https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}`} rel="noopener nofollow" className="btn-quiet flex-1">
+              <RouteIcon className="size-4" />
+              Directions
+            </a>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   );
 }
