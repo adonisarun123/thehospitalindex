@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+/* SRS §06 tokens. Contrast (computed, WCAG relative luminance):
+   ink on canvas 12.3:1 · muted on canvas 6.6:1 · white on teal 7.5:1 · error on surface 7.2:1 */
+@theme {
+  --color-ink: #183347;
+  --color-teal: #075f59;
+  --color-teal-dark: #054843;
+  --color-teal-tint: #e3efed;
+  --color-canvas: #f6f8f6;
+  --color-surface: #ffffff;
+  --color-muted: #475c64;
+  --color-line: #d5dedb;
+  --color-error: #9c3330;
+  --color-error-tint: #f7e9e8;
+  --color-amber-tint: #fbf1dc;
+  --color-amber-ink: #6b4a00;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Noto Sans", "Segoe UI", sans-serif;
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px rgb(24 51 71 / 0.06);
+}
+
+html {
+  scroll-padding-top: 5rem;
+}
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+:focus-visible {
+  outline: 3px solid var(--color-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+a {
+  text-underline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Tailwind v4: custom classes must be declared with @utility to be composable. */
+@utility card {
+  @apply rounded-(--radius-card) border border-line bg-surface shadow-(--shadow-card);
+}
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-base font-semibold no-underline;
+}
+@utility btn-primary {
+  @apply btn bg-teal text-white hover:bg-teal-dark;
+}
+@utility btn-quiet {
+  @apply btn border border-line bg-surface text-ink hover:border-teal;
+}
+@utility link {
+  @apply text-teal underline hover:text-teal-dark;
+}
+@utility meta {
+  @apply text-sm text-muted;
+}
+@utility field {
+  @apply min-h-11 w-full rounded-lg border border-muted/60 bg-surface px-3 text-base text-ink placeholder:text-muted;
+}
+@utility chip {
+  @apply inline-flex items-center rounded-full border border-line bg-canvas px-3 py-1 text-sm text-ink;
+}
+
+@layer components {
+  .prose-page :where(h2) {
+    @apply mt-8 mb-2 text-xl font-semibold;
+  }
+  .prose-page :where(p, ul, ol, dl) {
+    @apply mb-4;
+  }
+  .prose-page :where(ul) {
+    @apply list-disc pl-6;
+  }
+  .prose-page :where(dt) {
+    @apply font-semibold;
+  }
+  .prose-page :where(dd) {
+    @apply mb-3;
+  }
+}
