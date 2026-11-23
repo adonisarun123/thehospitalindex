@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { abs } from "@/lib/schema-org";
+import { JsonLd } from "@/components/json-ld";
+import { abs, breadcrumbLd, webPageLd } from "@/lib/schema-org";
 
 export const metadata: Metadata = {
   title: "How Patient Reviews Work",
@@ -11,6 +12,8 @@ export const metadata: Metadata = {
 export default function HowReviewsWork() {
   return (
     <div className="wrap py-8"><div className="prose-page max-w-3xl">
+      <JsonLd data={breadcrumbLd([{ name: "Home", href: "/" }, { name: "How reviews work", href: "/how-reviews-work" }])} />
+      <JsonLd data={webPageLd({ name: "How Patient Reviews Work", description: "How The Hospital Index checks visit evidence before a patient review is published, what the label means and what it does not.", path: "/how-reviews-work" })} />
       <h1 className="h-page">How patient reviews work</h1>
       <p className="mt-4 text-lg">
         A review on this site is a firsthand account from a patient whose visit evidence our team has checked. Reading reviews never needs an account.

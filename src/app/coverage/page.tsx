@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { coverageLedger } from "@/lib/queries/geo";
-import { abs } from "@/lib/schema-org";
+import { JsonLd } from "@/components/json-ld";
+import { abs, breadcrumbLd, webPageLd } from "@/lib/schema-org";
 import { urls } from "@/lib/urls";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +20,14 @@ export default async function Coverage() {
   const total = rows.reduce((a, r) => ({ d: a.d + r.discovered, c: a.c + r.checked, p: a.p + r.published, i: a.i + r.indexable }), { d: 0, c: 0, p: 0, i: 0 });
   return (
     <>
+      <JsonLd data={breadcrumbLd([{ name: "Home", href: "/" }, { name: "Directory coverage", href: "/coverage" }])} />
+      <JsonLd
+        data={webPageLd({
+          name: "Directory Coverage by State",
+          description: "How many hospital branches The Hospital Index has discovered, checked and published in each state and union territory.",
+          path: "/coverage",
+        })}
+      />
       <PageHeader title="Directory coverage">
         <p className="mt-3 max-w-3xl">
           These numbers describe our directory, not India’s hospitals. We do not yet hold a licensed national inventory to use as a denominator, so

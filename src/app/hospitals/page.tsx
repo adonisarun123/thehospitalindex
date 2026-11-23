@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { JsonLd } from "@/components/json-ld";
 import { PageHeader } from "@/components/page-header";
 import { SearchBox } from "@/components/search-box";
 import { listStates } from "@/lib/queries/geo";
-import { abs } from "@/lib/schema-org";
+import { abs, breadcrumbLd, webPageLd } from "@/lib/schema-org";
 import { urls } from "@/lib/urls";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,22 @@ export default async function CountryDirectory() {
   ];
   return (
     <>
+      <JsonLd data={breadcrumbLd([{ name: "Home", href: "/" }, { name: "Hospitals in India", href: urls.country() }])} />
+      <JsonLd
+        data={webPageLd({
+          type: "CollectionPage",
+          name: "Hospitals in India by State and Union Territory",
+          description: "Browse hospital branches in every Indian state and union territory.",
+          path: urls.country(),
+          extra: {
+            mainEntity: {
+              "@type": "ItemList",
+              numberOfItems: states.length,
+              itemListElement: states.map((s, i) => ({ "@type": "ListItem", position: i + 1, name: s.name, url: abs(urls.state(s.slug)) })),
+            },
+          },
+        })}
+      />
       <PageHeader crumbs={[{ name: "Hospitals in India", href: urls.country() }]} title="Hospitals in India">
         <p className="mt-2 max-w-2xl text-muted">Pick a state or union territory, or search by city, locality or PIN.</p>
       </PageHeader>

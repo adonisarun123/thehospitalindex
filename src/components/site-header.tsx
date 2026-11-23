@@ -5,6 +5,7 @@ import { SITE_NAME } from "@/lib/env";
 const NAV = [
   ["/hospitals", "Browse by state"],
   ["/specialties", "Specialties"],
+  ["/blog", "Guides"],
   ["/how-reviews-work", "How reviews work"],
 ] as const;
 

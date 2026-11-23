@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { POLICY } from "@/lib/policy";
-import { abs } from "@/lib/schema-org";
+import { JsonLd } from "@/components/json-ld";
+import { abs, breadcrumbLd, webPageLd } from "@/lib/schema-org";
 
 export const metadata: Metadata = {
   title: "Sources, Trust Labels and Sorting",
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
 export default function Sources() {
   return (
     <div className="wrap py-8"><div className="prose-page max-w-3xl">
+      <JsonLd data={breadcrumbLd([{ name: "Home", href: "/" }, { name: "Sources and sorting", href: "/sources" }])} />
+      <JsonLd data={webPageLd({ name: "Sources, Trust Labels and Sorting", description: "What each trust label on The Hospital Index means, how hospital facts are sourced and how search results are ordered.", path: "/sources" })} />
       <h1 className="h-page">Sources, trust labels and sorting</h1>
       <p className="mt-4 text-lg">Every profile describes one physical branch. Each important fact carries a label saying who supplied it and when it was checked.</p>
 

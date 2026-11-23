@@ -18,11 +18,23 @@ Next.js 16 (App Router, TypeScript, React Server Components) · Neon PostgreSQL
 | Public directory | Home, state, city, district, locality, specialty and service hubs, branch profile, search |
 | Search (§05) | Filters, default and rating sort, typo tolerance, typeahead, pagination |
 | Index control (§22–23) | Canonicals, noindex gates, real 404/308, sitemap index, JSON-LD |
+| Editorial | 11 sourced guides, glossary, FAQ, about, editorial policy, medical disclaimer, RSS, llms.txt, OG images |
 | Public API (§27) | `/api/v1` geographies, suggest, hospitals, hospital, reviews |
 | Not built yet | OTP login, review submission, evidence storage, moderation, admin console, imports UI, correction forms |
 
 There are **no hospitals** in the database. Branches enter only through a
 sourced import with a recorded reuse basis (OPS-01/02).
+
+## Editorial content
+
+Guides live in `src/content/blog/*.ts` (one typed module per post), with the
+glossary and site FAQ in `src/content`. They render statically at `/blog`,
+`/blog/[slug]`, `/glossary` and `/faq`, feed `/blog/rss.xml`, `/llms.txt` and
+`/sitemaps/blog.xml`, and emit BlogPosting, Blog, FAQPage and DefinedTermSet
+JSON-LD. Every regulatory or numeric claim must cite a source in the post's
+`sources` list, and `factsCheckedOn` records when they were last compared.
+`npm test` checks slugs, internal links, dates and description lengths.
+To add a post: create the module, register it in `src/content/blog/index.ts`.
 
 ## Run it
 

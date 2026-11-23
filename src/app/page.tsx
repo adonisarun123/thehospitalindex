@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CheckIcon, ChevronIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
 import { SearchBox } from "@/components/search-box";
+import { posts } from "@/content/blog";
 import { SITE_URL } from "@/lib/env";
 import { VISIT_LABEL } from "@/lib/policy";
 import { listSpecialties } from "@/lib/queries/branches";
@@ -125,6 +126,28 @@ export default async function Home() {
               <Link href={urls.specialty(s.slug)} className="card-link flex h-full min-h-20 flex-col justify-center p-4 text-ink no-underline">
                 <span className="font-semibold [overflow-wrap:anywhere]">{s.name}</span>
                 {s.plainLabel ? <span className="meta">{s.plainLabel}</span> : null}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="guides-h" className="wrap mt-14">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h2 id="guides-h" className="h-section">
+            Guides for patients and families
+          </h2>
+          <Link href="/blog" className="link inline-flex min-h-11 items-center gap-1 font-medium">
+            All guides <ChevronIcon />
+          </Link>
+        </div>
+        <ul className="mt-5 grid gap-3 md:grid-cols-3">
+          {posts.slice(0, 3).map((p) => (
+            <li key={p.slug}>
+              <Link href={`/blog/${p.slug}`} className="card-link flex h-full flex-col p-5 text-ink no-underline">
+                <span className="meta">{p.category}</span>
+                <span className="mt-1 font-semibold">{p.title}</span>
+                <span className="mt-2 text-sm text-muted">{p.excerpt}</span>
               </Link>
             </li>
           ))}

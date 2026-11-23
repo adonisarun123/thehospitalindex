@@ -29,6 +29,9 @@ export const metadata: Metadata = {
     "A directory of physical hospital branches across India. Check the services a branch offers, see where each fact came from, and read patient experiences.",
   applicationName: SITE_NAME,
   openGraph: { siteName: SITE_NAME, type: "website", locale: "en_IN" },
+  twitter: { card: "summary_large_image" },
+  alternates: { types: { "application/rss+xml": [{ url: "/blog/rss.xml", title: `${SITE_NAME} Blog` }] } },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = { themeColor: "#075f59", width: "device-width", initialScale: 1 };
@@ -40,6 +43,8 @@ const FOOTER = [
       ["/hospitals", "Browse by state"],
       ["/specialties", "Specialties"],
       ["/search", "Search hospitals"],
+      ["/blog", "Patient guides"],
+      ["/glossary", "Glossary"],
     ],
   },
   {
@@ -48,14 +53,18 @@ const FOOTER = [
       ["/how-reviews-work", "How reviews work"],
       ["/sources", "Sources and sorting"],
       ["/coverage", "Directory coverage"],
+      ["/about", "About us"],
+      ["/editorial-policy", "Editorial policy"],
     ],
   },
   {
     title: "Help",
     links: [
+      ["/faq", "FAQ"],
       ["/corrections", "Suggest a correction"],
       ["/privacy", "Privacy"],
       ["/grievance", "Grievances"],
+      ["/medical-disclaimer", "Medical disclaimer"],
     ],
   },
 ] as const;
