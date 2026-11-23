@@ -39,6 +39,12 @@ refuses to run against anything but a local database.
 
 Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
 
+## Deploys
+
+Vercel builds run `scripts/vercel-build.mjs`. A production build applies pending
+migrations and the reference seed, then builds; preview builds never touch the
+database. Functions run in `sin1`, next to the Neon project.
+
 ## Decisions worth knowing
 
 - **Cache Components / PPR are off** (`next.config.ts`). With them a dynamic
