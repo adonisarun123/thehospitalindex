@@ -129,24 +129,30 @@ npx next build
 All must pass. Then re-read each post against its sources one claim at a time.
 Confirm every hub's slugs resolve (state, city, taxon) with a read-only query.
 
-## 5. Commit, write the PR description, log it
+## 5. Commit, push the branch, open the PR, log it
 
-The weekly run happens on Arun's Mac, where git push is blocked for Claude, so
-the run ends with a local branch and Arun pushes it.
+The weekly run works in Arun's local clone at
+`/Users/arun/Projects/thehospitalindex`. Run git and npm commands on the Mac
+itself (Desktop Commander), where Arun's GitHub login is available; the
+sandbox shell cannot push.
 
-1. Before starting: the working tree must be clean and on `main`, and `main`
-   must be up to date with `origin/main` (`git fetch` then compare). If not,
-   stop and report; never stash, reset or overwrite Arun's work.
-2. Create `content/<YYYY-wNN>` from `main`, add the week's files, commit with
-   message `Content: week <YYYY-wNN> (4 posts, 3 hubs)`.
-3. Write the PR description to `content-ops/prs/<YYYY-wNN>.md` (in the same
-   commit): per item the title or hub path, the main question, the two
+1. Before starting: the working tree must be clean and on `main`. Run
+   `git fetch origin`. If local `main` is behind or has diverged from
+   `origin/main`, or the tree is dirty, stop and report; never stash, reset or
+   overwrite Arun's work. Branch from local `main`.
+2. Create `content/<YYYY-wNN>`, add the week's files, commit with message
+   `Content: week <YYYY-wNN> (4 posts, 3 hubs)`.
+3. Write the PR description to `content-ops/prs/<YYYY-wNN>.md` in the same
+   commit: per item the title or hub path, the main question, the two
    question-evidence URLs, and any claim you were unsure of.
 4. Append one line per item to `content-ops/log.md`. Tick off used backlog
    items and add 4+ new clusters you came across.
-5. Report to Arun the two commands to publish for review:
-   `git push -u origin content/<YYYY-wNN>` and
-   `gh pr create --base main --head content/<YYYY-wNN> --title "Content: week <YYYY-wNN>" --body-file content-ops/prs/<YYYY-wNN>.md`
+5. `git push -u origin content/<YYYY-wNN>`, then
+   `gh pr create --base main --head content/<YYYY-wNN> --title "Content: week <YYYY-wNN> (4 posts, 3 hubs)" --body-file content-ops/prs/<YYYY-wNN>.md`.
+   Never push to `main` and never merge. Switch the clone back to `main`
+   when done.
+6. If an earlier weekly PR is still open, still do this week, and say so in
+   the PR body.
 
 ## Stop and ask a person instead of publishing when
 
