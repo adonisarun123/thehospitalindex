@@ -25,6 +25,65 @@ function openingHours(p: BranchProfile) {
   });
 }
 
+/**
+ * Departments mapped to schema.org's MedicalSpecialty enumeration. Only
+ * enumeration members are valid values; departments with no fair match
+ * (general medicine, ophthalmology, critical care…) are omitted from the
+ * markup but stay visible on the page.
+ */
+const MEDICAL_SPECIALTY: Record<string, string[]> = {
+  "general-surgery": ["Surgical"],
+  "emergency-medicine": ["Emergency"],
+  "obstetrics-and-gynaecology": ["Obstetric", "Gynecologic"],
+  paediatrics: ["Pediatric"],
+  neonatology: ["Pediatric"],
+  "paediatric-surgery": ["Pediatric", "Surgical"],
+  cardiology: ["Cardiovascular"],
+  "cardiothoracic-surgery": ["Cardiovascular", "Surgical"],
+  orthopaedics: ["Musculoskeletal"],
+  oncology: ["Oncologic"],
+  "surgical-oncology": ["Oncologic", "Surgical"],
+  "radiation-oncology": ["Oncologic"],
+  nephrology: ["Renal"],
+  neurology: ["Neurologic"],
+  neurosurgery: ["Neurologic", "Surgical"],
+  gastroenterology: ["Gastroenterologic"],
+  urology: ["Urologic"],
+  pulmonology: ["Pulmonary"],
+  endocrinology: ["Endocrine"],
+  ent: ["Otolaryngologic"],
+  dermatology: ["Dermatology"],
+  psychiatry: ["Psychiatric"],
+  dentistry: ["Dentistry"],
+  "physical-medicine-and-rehabilitation": ["Physiotherapy"],
+  radiology: ["Radiography"],
+  anaesthesiology: ["Anesthesia"],
+  pathology: ["Pathology"],
+  "plastic-surgery": ["PlasticSurgery"],
+  rheumatology: ["Rheumatologic"],
+  haematology: ["Hematologic"],
+  geriatrics: ["Geriatric"],
+  "infectious-diseases": ["Infectious"],
+};
+
+/**
+ * Imported address lines often repeat the town, PIN and state that the
+ * PostalAddress already carries ("… BANGALORE - 560 004 Karnataka").
+ * Strip those trailing repeats so streetAddress holds only the street part.
+ */
+export function cleanStreet(street: string, parts: (string | null | undefined)[]): string {
+  const drop = parts.filter(Boolean).map((p) => p!.toLowerCase());
+  let s = street.replace(/\b\d{3}\s?\d{3}\b/g, " ");
+  for (let i = 0; i < 4; i++) {
+    s = s.replace(/[\s,.\-–]+$/, "");
+    const lower = s.toLowerCase();
+    const hit = drop.find((d) => lower.endsWith(d) && (lower.length === d.length || /[\s,.\-]/.test(lower[lower.length - d.length - 1])));
+    if (!hit) break;
+    s = s.slice(0, s.length - hit.length);
+  }
+  return s.replace(/[\s,.\-–]+$/, "").replace(/\s{2,}/g, " ").trim();
+}
+
 export const abs = (path: string) => `${SITE_URL}${path === "/" ? "" : path}` || SITE_URL;
 
 export function breadcrumbLd(items: Crumb[]) {
@@ -242,7 +301,12 @@ export function hospitalLd(b: BranchCore, p: BranchProfile) {
   const url = abs(urls.branch(b.slug, b.publicId));
   const phone = p.contacts.find((c) => c.status === "checked_against_source" && ["switchboard", "opd", "admissions"].includes(c.role));
   const website = p.contacts.find((c) => c.status === "checked_against_source" && c.role === "website");
-  const street = [b.addressLine1, b.addressLine2].filter(Boolean).join(", ");
+  const street = cleanStreet([b.addressLine1, b.addressLine2].filter(Boolean).join(", "), [
+    b.settlement.name,
+    b.district?.name,
+    b.state.name,
+    "india",
+  ]);
   const ld: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Hospital",
@@ -259,6 +323,12 @@ export function hospitalLd(b: BranchCore, p: BranchProfile) {
     },
   };
   ld.mainEntityOfPage = url;
+  ld.containedInPlace = {
+    "@type": "City",
+    name: b.settlement.name,
+    url: abs(urls.city(b.state.slug, b.settlement.slug)),
+    containedInPlace: { "@type": "State", name: b.state.name, url: abs(urls.state(b.state.slug)) },
+  };
   ld.isAccessibleForFree = true;
   if (b.legalName && b.legalName !== b.displayName) ld.alternateName = b.legalName;
   if (b.overview) ld.description = b.overview;
@@ -277,8 +347,18 @@ export function hospitalLd(b: BranchCore, p: BranchProfile) {
     .filter((a) => a.state === "yes" || a.state === "no")
     .map((a) => ({ "@type": "LocationFeatureSpecification", name: titleCaseEnum(a.code), value: a.state === "yes" }));
   if (features.length) ld.amenityFeature = features;
-  const specialties = p.offerings.filter((o) => o.kind === "specialty").map((o) => o.name);
-  if (specialties.length) ld.medicalSpecialty = [...new Set(specialties)];
+  const specialties = p.offerings.filter((o) => o.kind === "specialty").flatMap((o) => MEDICAL_SPECIALTY[o.slug] ?? []);
+  if (specialties.length) ld.medicalSpecialty = [...new Set(specialties)].map((v) => `https://schema.org/${v}`);
+  const accreditations = p.credentials.filter((c) => c.category === "hospital_accreditation" && c.status === "checked_against_source");
+  if (accreditations.length)
+    ld.hasCredential = accreditations.map((c) => ({
+      "@type": "EducationalOccupationalCredential",
+      credentialCategory: "Hospital accreditation",
+      name: [c.issuer, c.programme, c.level].filter(Boolean).join(" "),
+      recognizedBy: { "@type": "Organization", name: c.issuer },
+      ...(c.registerUrl ? { url: c.registerUrl } : {}),
+      ...(c.expiresOn ? { expires: c.expiresOn } : {}),
+    }));
   if (b.reviewCount > 0) {
     ld.aggregateRating = {
       "@type": "AggregateRating",

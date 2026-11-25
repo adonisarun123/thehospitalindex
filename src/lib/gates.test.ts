@@ -87,6 +87,13 @@ describe("hub thresholds and ratings", () => {
     expect(hubIsIndexable({ indexableBranches: 3, minBranches: 3, hasReviewedContext: false })).toBe(false);
     expect(hubIsIndexable({ indexableBranches: 2, minBranches: 3, hasReviewedContext: true })).toBe(false);
   });
+  it("a data summary unlocks a hub only at its own, higher threshold", () => {
+    const base = { minBranches: 3, hasReviewedContext: false, hasDataSummary: true, dataSummaryMinBranches: 5 };
+    expect(hubIsIndexable({ ...base, indexableBranches: 5 })).toBe(true);
+    expect(hubIsIndexable({ ...base, indexableBranches: 4 })).toBe(false);
+    expect(hubIsIndexable({ ...base, indexableBranches: 9, hasDataSummary: false })).toBe(false);
+    expect(hubIsIndexable({ ...base, indexableBranches: 9, dataSummaryMinBranches: undefined })).toBe(false);
+  });
   it("UAT-07: ratings of 4 and 5 display as 4.5 from two; zero reviews has no score", () => {
     expect(displayRating(9, 2)).toBe("4.5");
     expect(displayRating(0, 0)).toBeNull();

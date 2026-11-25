@@ -1,5 +1,6 @@
 import { POLICY } from "@/lib/policy";
 import { countsFor } from "@/lib/queries/geo";
+import { getHubStats } from "@/lib/queries/related";
 import { resolveChild, resolveState } from "@/lib/routes/geo";
 import { buildListingRoute } from "@/lib/routes/listing-route";
 import { urls } from "@/lib/urls";
@@ -16,7 +17,7 @@ const route = buildListingRoute<{ state: string; district: string }>(async ({ st
   if ("redirectSlug" in d) return { kind: "redirect", to: urls.district(s.state.slug, d.redirectSlug) };
 
   const district = d.geo;
-  const counts = await countsFor(district);
+  const [counts, stats] = await Promise.all([countsFor(district), getHubStats({ districtId: district.id })]);
   const basePath = urls.district(s.state.slug, district.slug);
   return {
     kind: "ok",
@@ -36,6 +37,7 @@ const route = buildListingRoute<{ state: string; district: string }>(async ({ st
         indexableBranches: counts.indexable,
         minBranches: POLICY.index.geoHubMinBranches,
         context: district.hasReviewedContext ? { text: district.localContext! } : null,
+        summary: { stats, place: `${district.name} district` },
       },
       fallbackLinks: [{ href: urls.state(s.state.slug), label: `All of ${s.state.name}` }],
     },

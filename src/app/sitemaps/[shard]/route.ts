@@ -5,7 +5,7 @@ import { urlset } from "@/lib/sitemap-xml";
 export const dynamic = "force-dynamic";
 
 /** Indexable, canonical URLs only. Trust pages still awaiting sign-off (privacy, grievance, corrections) are excluded. */
-const STATIC = ["/", "/hospitals", "/how-reviews-work", "/sources", "/coverage", "/about", "/editorial-policy", "/medical-disclaimer", "/glossary", "/faq"];
+const STATIC = ["/", "/hospitals", "/specialties", "/how-reviews-work", "/sources", "/coverage", "/about", "/editorial-policy", "/medical-disclaimer", "/glossary", "/faq"];
 
 export async function GET(_req: Request, ctx: { params: Promise<{ shard: string }> }) {
   const { shard } = await ctx.params;

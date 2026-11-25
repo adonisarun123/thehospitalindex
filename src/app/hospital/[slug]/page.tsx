@@ -9,6 +9,7 @@ import { JsonLd } from "@/components/json-ld";
 import { TrustLabel, formatDate } from "@/components/trust-label";
 import { displayRating } from "@/lib/gates";
 import { VISIT_LABEL } from "@/lib/policy";
+import { branchRelated } from "@/lib/queries/related";
 import { findRedirect, getBranchCore, getBranchProfile, listReviews, type BranchCore, type Hours } from "@/lib/queries/profile";
 import { abs, breadcrumbLd, hospitalLd } from "@/lib/schema-org";
 import { titleCaseEnum } from "@/lib/text";
@@ -31,8 +32,12 @@ const load = cache(async (param: string) => {
     return r?.targetPath ? ({ kind: "redirect", to: r.targetPath } as const) : ({ kind: "missing" } as const);
   }
   if (parsed.slug !== core.slug) return { kind: "redirect", to: urls.branch(core.slug, core.publicId) } as const;
-  const [profile, reviews] = await Promise.all([getBranchProfile(core.id), listReviews(core.id, { limit: 10 })]);
-  return { kind: "ok", core, profile, reviews: reviews ?? { items: [], next: null } } as const;
+  const [profile, reviews, related] = await Promise.all([
+    getBranchProfile(core.id),
+    listReviews(core.id, { limit: 10 }),
+    branchRelated(core.id),
+  ]);
+  return { kind: "ok", core, profile, related, reviews: reviews ?? { items: [], next: null } } as const;
 });
 
 async function run(props: Props) {
@@ -89,7 +94,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 export default async function BranchPage(props: Props) {
-  const { core: b, profile: p, reviews } = await run(props);
+  const { core: b, profile: p, reviews, related } = await run(props);
   const name = fullName(b);
   const self = urls.branch(b.slug, b.publicId);
   const crumbs: Crumb[] = [
@@ -107,6 +112,12 @@ export default async function BranchPage(props: Props) {
   const rating = displayRating(b.ratingSum, b.reviewCount);
 
   const departments = p.offerings.filter((o) => o.kind === "specialty");
+  // Department links stay local when the city hub for that department can be indexed.
+  const cityHubSlugs = new Set(related.cityHubs.filter((h) => h.kind === "specialty").map((h) => h.slug));
+  const deptHref = (slug: string) =>
+    cityHubSlugs.has(slug) ? urls.citySpecialty(b.state.slug, b.settlement.slug, slug) : urls.specialty(slug);
+  const deptSlugs = new Set(departments.map((d) => d.slug));
+  const similarCare = related.cityHubs.filter((h) => h.kind === "specialty" && deptSlugs.has(h.slug)).slice(0, 8);
   const services = p.offerings.filter((o) => o.kind === "service");
   const accessibility = p.amenities.filter((a) => a.category === "accessibility");
   const otherAmenities = p.amenities.filter((a) => a.category !== "accessibility");
@@ -292,7 +303,7 @@ export default async function BranchPage(props: Props) {
               <ul className="mt-2 grid gap-x-6 gap-y-3 sm:grid-cols-2">
                 {departments.map((o) => (
                   <li key={`${o.slug}-${o.careSetting}`}>
-                    <Link href={urls.specialty(o.slug)} className="link font-medium">
+                    <Link href={deptHref(o.slug)} className="link font-medium">
                       {o.name}
                     </Link>
                     {o.plainLabel ? <span className="meta"> ({o.plainLabel})</span> : null}
@@ -615,10 +626,72 @@ export default async function BranchPage(props: Props) {
         </p>
       </Section>
 
-          <p className="mt-6">
+          {related.nearby.length || related.siblings.length || similarCare.length ? (
+            <Section id="related" title={`More hospitals near ${b.locality?.name ?? b.settlement.name}`}>
+              <div className="grid gap-6 md:grid-cols-2">
+                {related.nearby.length ? (
+                  <nav aria-labelledby="nearby-h">
+                    <h3 id="nearby-h" className="text-lg font-semibold">
+                      Other hospitals in {b.settlement.name}
+                    </h3>
+                    <ul className="mt-2">
+                      {related.nearby.map((n) => (
+                        <li key={n.publicId}>
+                          <Link href={urls.branch(n.slug, n.publicId)} className="link inline-flex min-h-11 items-center font-medium">
+                            {n.name}
+                          </Link>
+                          <span className="meta"> · {n.place}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                ) : null}
+                {similarCare.length ? (
+                  <nav aria-labelledby="similar-h">
+                    <h3 id="similar-h" className="text-lg font-semibold">
+                      Compare by department in {b.settlement.name}
+                    </h3>
+                    <ul className="mt-2">
+                      {similarCare.map((h) => (
+                        <li key={h.slug}>
+                          <Link href={urls.citySpecialty(b.state.slug, b.settlement.slug, h.slug)} className="link inline-flex min-h-11 items-center">
+                            {h.name} hospitals in {b.settlement.name}
+                          </Link>{" "}
+                          <span className="meta">({h.published})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                ) : null}
+                {related.siblings.length ? (
+                  <nav aria-labelledby="siblings-h">
+                    <h3 id="siblings-h" className="text-lg font-semibold">
+                      Other {b.orgName ?? "group"} branches
+                    </h3>
+                    <ul className="mt-2">
+                      {related.siblings.map((n) => (
+                        <li key={n.publicId}>
+                          <Link href={urls.branch(n.slug, n.publicId)} className="link inline-flex min-h-11 items-center font-medium">
+                            {n.name}
+                          </Link>
+                          <span className="meta"> · {n.place}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                ) : null}
+              </div>
+            </Section>
+          ) : null}
+          <p className="mt-6 flex flex-wrap gap-3">
             <Link href={urls.city(b.state.slug, b.settlement.slug)} className="btn-quiet">
               More hospitals in {b.settlement.name}
             </Link>
+            {b.district ? (
+              <Link href={urls.district(b.state.slug, b.district.slug)} className="btn-quiet">
+                Hospitals in {b.district.name} district
+              </Link>
+            ) : null}
           </p>
         </div>
       </div>

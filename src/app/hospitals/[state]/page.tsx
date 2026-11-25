@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Crumb } from "@/components/breadcrumbs";
+import { HubSummary } from "@/components/hub-summary";
 import { PageHeader } from "@/components/page-header";
 import { JsonLd } from "@/components/json-ld";
 import { hubIsIndexable } from "@/lib/gates";
 import { POLICY } from "@/lib/policy";
 import { countsFor, listPlacesInState } from "@/lib/queries/geo";
+import { featuredBranches, getHubStats } from "@/lib/queries/related";
 import { resolveState } from "@/lib/routes/geo";
 import { abs, breadcrumbLd } from "@/lib/schema-org";
 import { urls } from "@/lib/urls";
@@ -25,7 +27,7 @@ async function run(props: Props) {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const state = await run(props);
-  const counts = await countsFor(state);
+  const [counts, stats] = await Promise.all([countsFor(state), getHubStats({ stateId: state.id })]);
   return {
     title: `Hospitals in ${state.name} by City and District`,
     description: `Browse ${counts.published} published hospital ${counts.published === 1 ? "branch" : "branches"} in ${state.name} by city, town and district.`,
@@ -36,6 +38,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
         indexableBranches: counts.indexable,
         minBranches: POLICY.index.geoHubMinBranches,
         hasReviewedContext: state.hasReviewedContext,
+        hasDataSummary: POLICY.index.dataSummaryHubs && stats.published > 0,
+        dataSummaryMinBranches: POLICY.index.dataSummaryMinBranches,
       }),
       follow: true,
     },
@@ -44,10 +48,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function StatePage(props: Props) {
   const state = await run(props);
-  const [counts, cities, districts] = await Promise.all([
+  const [counts, cities, districts, stats, featured] = await Promise.all([
     countsFor(state),
     listPlacesInState(state.id, "settlement"),
     listPlacesInState(state.id, "district"),
+    getHubStats({ stateId: state.id }),
+    featuredBranches(state.id),
   ]);
   const crumbs: Crumb[] = [
     { name: "Hospitals in India", href: urls.country() },
@@ -64,6 +70,7 @@ export default async function StatePage(props: Props) {
             {state.name}.
           </p>
         ) : null}
+        <HubSummary stats={stats} place={state.name} />
       </PageHeader>
       <div className="wrap">
       {counts.published === 0 ? (
@@ -108,6 +115,24 @@ export default async function StatePage(props: Props) {
               ))}
             </ul>
           </section>
+          {featured.length > 0 ? (
+            <section aria-labelledby="featured-h" className="mt-8">
+              <h2 id="featured-h" className="h-section">
+                Most complete listings in {state.name}
+              </h2>
+              <p className="meta mt-1">Ordered by how many sourced facts we hold, not by quality or rating.</p>
+              <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {featured.map((b) => (
+                  <li key={b.publicId}>
+                    <Link href={urls.branch(b.slug, b.publicId)} className="card-link block p-4 text-ink no-underline">
+                      <span className="font-semibold">{b.name}</span>
+                      <span className="meta block">{b.place}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {districts.length > 0 ? (
             <section aria-labelledby="districts-h" className="mt-8">
               <h2 id="districts-h" className="h-section">

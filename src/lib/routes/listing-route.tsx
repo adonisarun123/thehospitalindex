@@ -3,9 +3,12 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 import type { Crumb } from "@/components/breadcrumbs";
+import { HubSummary } from "@/components/hub-summary";
 import { ListingView } from "@/components/listing-view";
 import { hubIsIndexable } from "@/lib/gates";
 import { listingRobots, loadListing, type ListingInput, type SearchParams } from "@/lib/listing";
+import { POLICY } from "@/lib/policy";
+import type { HubStats } from "@/lib/queries/related";
 import { abs } from "@/lib/schema-org";
 import { withPage } from "@/lib/urls";
 
@@ -17,7 +20,17 @@ export type ListingDescriptor = {
   description: (total: number) => string;
   crumbs: Crumb[];
   input: ListingInput;
-  hub: { indexableBranches: number; minBranches: number; context: { text: string; reviewedAt?: string | null; owner?: string | null } | null };
+  hub: {
+    indexableBranches: number;
+    minBranches: number;
+    context: { text: string; reviewedAt?: string | null; owner?: string | null } | null;
+    /**
+     * Data-derived summary. Rendered on the page and, while POLICY.index.dataSummaryHubs
+     * is on, enough to make the hub indexable at POLICY.index.dataSummaryMinBranches.
+     * Locality hubs pass none: they stay editorial-only.
+     */
+    summary?: { stats: HubStats; place: string; subject?: string; specialtyHref?: (slug: string) => string | null } | null;
+  };
   showFilters?: { specialty: boolean; locality: boolean };
   fallbackLinks?: { href: string; label: string }[];
   top?: React.ReactNode;
@@ -57,6 +70,8 @@ export function buildListingRoute<P extends Record<string, string>>(resolve: (pa
         indexableBranches: d.hub.indexableBranches,
         minBranches: d.hub.minBranches,
         hasReviewedContext: Boolean(d.hub.context),
+        hasDataSummary: POLICY.index.dataSummaryHubs && Boolean(d.hub.summary?.stats.published),
+        dataSummaryMinBranches: POLICY.index.dataSummaryMinBranches,
       }),
       hasFilters: listing.hasFilters,
     });
@@ -80,7 +95,12 @@ export function buildListingRoute<P extends Record<string, string>>(resolve: (pa
         context={d.hub.context}
         showFilters={d.showFilters}
         fallbackLinks={d.fallbackLinks}
-        top={d.top}
+        top={
+          <>
+            {d.top}
+            {d.hub.summary && listing.result.page === 1 && !listing.hasFilters ? <HubSummary {...d.hub.summary} /> : null}
+          </>
+        }
       >
         {d.extras}
       </ListingView>

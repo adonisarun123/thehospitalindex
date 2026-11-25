@@ -1,6 +1,9 @@
 import "server-only";
+import { createElement as h, type ReactNode } from "react";
+import Link from "next/link";
 import { POLICY } from "@/lib/policy";
 import { countIndexable, getTaxonBySlug, hasApprovedHubContent } from "@/lib/queries/branches";
+import { citiesForTaxon, cityTaxonHubs, getHubStats } from "@/lib/queries/related";
 import { resolveChild, resolveState, isSlug } from "@/lib/routes/geo";
 import { buildListingRoute } from "@/lib/routes/listing-route";
 import { urls } from "@/lib/urls";
@@ -25,14 +28,18 @@ export function buildCityTaxonRoute(kind: "specialty" | "service") {
 
     const city = c.geo;
     const key = kind === "specialty" ? { specialtyIds: [taxon.id] } : { serviceIds: [taxon.id] };
-    const [indexable, content] = await Promise.all([
+    const [indexable, content, stats, siblings, otherPlaces] = await Promise.all([
       countIndexable({ scope: { settlementId: city.id }, ...key }),
       hasApprovedHubContent({
         geographyId: city.id,
         specialtyId: kind === "specialty" ? taxon.id : null,
         serviceId: kind === "service" ? taxon.id : null,
       }),
+      getHubStats({ settlementId: city.id, ...(kind === "specialty" ? { specialtyId: taxon.id } : { serviceId: taxon.id }) }),
+      cityTaxonHubs(city.id),
+      citiesForTaxon(kind, taxon.id, city.id),
     ]);
+    const otherHubs = siblings.filter((h) => !(h.kind === kind && h.slug === taxon.slug));
     const basePath = path(s.state.slug, city.slug, taxon.slug);
     const heading =
       kind === "specialty" ? `${taxon.name} hospitals in ${city.name}` : `Hospitals offering ${taxon.name.toLowerCase()} in ${city.name}`;
@@ -60,10 +67,78 @@ export function buildCityTaxonRoute(kind: "specialty" | "service") {
           indexableBranches: indexable,
           minBranches: POLICY.index.taxonomyHubMinBranches,
           context: content ? { text: content.guidance, reviewedAt: content.reviewedAt, owner: content.editorialOwner } : null,
+          summary: {
+            stats,
+            place: city.name,
+            subject: kind === "specialty" ? `${taxon.name.toLowerCase()} hospital branches` : `hospital branches offering ${taxon.name.toLowerCase()}`,
+          },
         },
         showFilters: { specialty: false, locality: false },
         fallbackLinks: [{ href: urls.city(s.state.slug, city.slug), label: `All hospitals in ${city.name}` }],
+        extras: relatedHubs({
+          cityName: city.name,
+          stateSlug: s.state.slug,
+          citySlug: city.slug,
+          taxonName: taxon.name,
+          taxonSlug: taxon.slug,
+          kind,
+          otherHubs,
+          otherPlaces,
+        }),
       },
     };
   });
+}
+
+/** Same city, other specialties; same specialty, other cities. Plain links: the two axes users actually move along. */
+function relatedHubs(p: {
+  cityName: string;
+  stateSlug: string;
+  citySlug: string;
+  taxonName: string;
+  taxonSlug: string;
+  kind: "specialty" | "service";
+  otherHubs: Awaited<ReturnType<typeof cityTaxonHubs>>;
+  otherPlaces: Awaited<ReturnType<typeof citiesForTaxon>>;
+}) {
+  if (!p.otherHubs.length && !p.otherPlaces.length) return null;
+  const item = (key: string, href: string, label: string, n: number) =>
+    h("li", { key }, h(Link, { href, className: "link inline-flex min-h-11 items-center" }, label), " ", h("span", { className: "meta" }, `(${n})`));
+  const nav = (id: string, title: string, items: ReactNode[]) =>
+    h("nav", { "aria-labelledby": id }, h("h2", { id, className: "text-lg font-semibold" }, title), h("ul", { className: "mt-2 columns-1 gap-6 sm:columns-2" }, items));
+  const label = p.kind === "specialty" ? `${p.taxonName} hospitals` : `Hospitals offering ${p.taxonName.toLowerCase()}`;
+  return h(
+    "div",
+    { className: "mt-10 grid gap-8 md:grid-cols-2" },
+    p.otherHubs.length
+      ? nav(
+          "other-taxa-h",
+          `More care in ${p.cityName}`,
+          p.otherHubs.map((x) =>
+            item(
+              `${x.kind}-${x.slug}`,
+              x.kind === "specialty" ? urls.citySpecialty(p.stateSlug, p.citySlug, x.slug) : urls.cityService(p.stateSlug, p.citySlug, x.slug),
+              x.kind === "specialty" ? `${x.name} hospitals` : `Hospitals offering ${x.name.toLowerCase()}`,
+              x.published,
+            ),
+          ),
+        )
+      : null,
+    p.otherPlaces.length
+      ? nav(
+          "other-places-h",
+          `${label} in other cities`,
+          p.otherPlaces.map((c) =>
+            item(
+              `${c.stateSlug}-${c.slug}`,
+              p.kind === "specialty"
+                ? urls.citySpecialty(c.stateSlug, c.slug, p.taxonSlug)
+                : urls.cityService(c.stateSlug, c.slug, p.taxonSlug),
+              `${c.name}, ${c.stateName}`,
+              c.published,
+            ),
+          ),
+        )
+      : null,
+  );
 }

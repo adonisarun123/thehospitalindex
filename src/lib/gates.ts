@@ -79,9 +79,22 @@ export function completeness(f: BranchFacts): number {
   return score;
 }
 
-/** SEO-01 hub thresholds. */
-export function hubIsIndexable(opts: { indexableBranches: number; minBranches: number; hasReviewedContext: boolean }) {
-  return opts.indexableBranches >= opts.minBranches && opts.hasReviewedContext;
+/**
+ * SEO-01 hub thresholds. Reviewed local context unlocks a hub at `minBranches`;
+ * a rendered data summary unlocks it at `dataSummaryMinBranches` (when given).
+ */
+export function hubIsIndexable(opts: {
+  indexableBranches: number;
+  minBranches: number;
+  hasReviewedContext: boolean;
+  hasDataSummary?: boolean;
+  dataSummaryMinBranches?: number;
+}) {
+  if (opts.indexableBranches < opts.minBranches) return false;
+  if (opts.hasReviewedContext) return true;
+  return Boolean(
+    opts.hasDataSummary && opts.dataSummaryMinBranches !== undefined && opts.indexableBranches >= opts.dataSummaryMinBranches,
+  );
 }
 
 /** MOD-03: average of integer ratings, rounded only for display. */
