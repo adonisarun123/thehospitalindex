@@ -169,9 +169,24 @@ export function featuredBranches(stateId: string, limit = 6) {
     order by b.completeness desc, b.display_name, b.id limit ${limit}`);
 }
 
+/** Registrable host of a website contact: https://www.apollohospitals.com/x → apollohospitals.com */
+const WEB_DOMAIN = sql`lower(regexp_replace(split_part(regexp_replace(c.value, '^[a-zA-Z]+://', ''), '/', 1), '^www[.]', ''))`;
+
+/**
+ * Hosts many unrelated hospitals share (social pages, site builders, booking
+ * and listing portals, link shorteners). A shared website on any other domain
+ * is treated as the same hospital group.
+ */
+const SHARED_HOSTS = sql`('facebook.com','m.facebook.com','instagram.com','youtube.com','twitter.com','x.com','linkedin.com',
+  'sites.google.com','google.com','g.page','goo.gl','maps.app.goo.gl','business.site','bit.ly','linktr.ee','wa.me',
+  'justdial.com','practo.com','lybrate.com','book-appointment.healthplix.com','healthplix.com','apnabusinesscard.com',
+  'bank.sbi','healthassure.in','sulekha.com','indiamart.com','wixsite.com','blogspot.com','wordpress.com','webs.com',
+  'weebly.com','godaddysites.com','mystrikingly.com','site123.me','jimdosite.com','nabh.co','pmjay.gov.in')`;
+
 /**
  * Profile interlinking: branches in the same locality first, then the same
- * town; and other branches of the same organisation anywhere in India.
+ * town; and other branches of the same group anywhere in India — the same
+ * linked organisation, or the same official website domain.
  * Indexable branches are preferred so link equity flows to pages that can rank.
  */
 export async function branchRelated(branchId: string) {
@@ -185,11 +200,20 @@ export async function branchRelated(branchId: string) {
         b.is_indexable desc, b.completeness desc, b.id
       limit ${POLICY.related.nearbyBranches}`),
     many<BranchLink & { stateSlug: string }>(sql`
-      with me as (select id, org_id from hospital_branch where id = ${branchId})
+      with me as (select id, org_id, settlement_id, state_id from hospital_branch where id = ${branchId}),
+      my_dom as (
+        select distinct ${WEB_DOMAIN} as d from branch_contact c, me
+        where c.branch_id = me.id and c.role = 'website' and not c.is_suppressed and c.status in ${PUBLIC_STATUS}
+      ),
+      brand as (select d from my_dom where d <> '' and d not in ${SHARED_HOSTS} and d !~ '[.](gov|nic|edu|ac)[.]in$')
       select ${linkCols}, st.slug as "stateSlug" ${linkFrom}
       join geography st on st.id = b.state_id, me
-      where me.org_id is not null and b.org_id = me.org_id and b.id <> me.id and b.status = 'published'
-      order by b.is_indexable desc, b.completeness desc, b.id
+      where b.id <> me.id and b.status = 'published' and (
+        (me.org_id is not null and b.org_id = me.org_id)
+        or exists (select 1 from branch_contact c where c.branch_id = b.id and c.role = 'website' and not c.is_suppressed
+          and c.status in ${PUBLIC_STATUS} and ${WEB_DOMAIN} in (select d from brand)))
+      order by (b.settlement_id = me.settlement_id) desc, (b.state_id = me.state_id) desc,
+        b.is_indexable desc, b.completeness desc, b.id
       limit ${POLICY.related.siblingBranches}`),
   ]);
   const hubs = me[0] ? await cityTaxonHubs(me[0].settlementId) : [];

@@ -29,6 +29,7 @@ import argparse
 import csv
 import os
 import re
+import unicodedata
 import sys
 import uuid
 from collections import Counter, defaultdict
@@ -174,6 +175,13 @@ def norm(s: str) -> str:
     return re.sub(r"\s+", " ", s.strip().lower())
 
 
+def norm_alias(s: str) -> str:
+    """Mirror of src/lib/text.ts normalize(): the form geo_alias.normalized is stored in."""
+    s = unicodedata.normalize("NFKC", s).lower()
+    s = re.sub(r"[‘’'\".,()]", "", s)
+    return re.sub(r"[\s\-_/]+", " ", s).strip()
+
+
 def https(url: str) -> str | None:
     url = (url or "").strip()
     if not url:
@@ -258,13 +266,16 @@ def main() -> None:
 
         # existing districts / settlements, by (state_id, normalized name or alias)
         geo: dict[tuple[str, str, str], str] = {}  # (kind, state_id, norm name) -> id
-        cur.execute("select id, kind, state_id, name, slug from geography where kind in ('district','settlement')")
+        # Inactive places (merged into another, see db/data-fixes/) keep their slug reserved but are never
+        # matched by name: their old names live on as aliases of the place they were merged into.
+        cur.execute("select id, kind, state_id, name, slug, is_active from geography where kind in ('district','settlement')")
         geo_slugs: set[tuple[str, str, str]] = set()
-        for i, k, st, n, s in cur.fetchall():
-            geo[(k, str(st), norm(n))] = str(i)
+        for i, k, st, n, s, active in cur.fetchall():
+            if active:
+                geo[(k, str(st), norm(n))] = str(i)
             geo_slugs.add((k, str(st), s))
         cur.execute("""select g.kind, g.state_id, a.normalized, g.id from geo_alias a join geography g on g.id = a.geography_id
-                       where g.kind in ('district','settlement')""")
+                       where g.kind in ('district','settlement') and g.is_active""")
         for k, st, n, i in cur.fetchall():
             geo.setdefault((k, str(st), n), str(i))
 
@@ -276,6 +287,10 @@ def main() -> None:
             key = (kind, state_id, norm(name))
             if key in geo:
                 return geo[key]
+            alias_key = (kind, state_id, norm_alias(name))
+            if alias_key in geo:
+                geo[key] = geo[alias_key]
+                return geo[alias_key]
             slug = slugify(name)
             if not slug or slug in RESERVED or not SLUG.match(slug):
                 skipped[f"{kind}_name_unusable"] += 1

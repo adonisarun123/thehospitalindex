@@ -666,7 +666,7 @@ export default async function BranchPage(props: Props) {
                 {related.siblings.length ? (
                   <nav aria-labelledby="siblings-h">
                     <h3 id="siblings-h" className="text-lg font-semibold">
-                      Other {b.orgName ?? "group"} branches
+                      Other branches of this hospital group
                     </h3>
                     <ul className="mt-2">
                       {related.siblings.map((n) => (
