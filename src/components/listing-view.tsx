@@ -5,6 +5,7 @@ import { Filters } from "@/components/filters";
 import { JsonLd } from "@/components/json-ld";
 import { Pagination } from "@/components/pagination";
 import type { Listing } from "@/lib/listing";
+import { TRUST_LABEL } from "@/lib/policy";
 import { breadcrumbLd, collectionLd } from "@/lib/schema-org";
 import { withPage } from "@/lib/urls";
 
@@ -118,7 +119,7 @@ export function ListingView(p: ListingViewProps) {
           ) : null}
 
           {result.items.length > 0 ? (
-            <ul className="mt-4 grid gap-4 xl:grid-cols-2">
+            <ul className="mt-4 grid gap-4">
               {result.items.map((b) => (
                 <li key={b.id}>
                   <BranchCard branch={b} headingLevel="h3" />
@@ -160,6 +161,23 @@ export function ListingView(p: ListingViewProps) {
               </ul>
             </div>
           )}
+
+          {result.items.length > 0 ? (
+            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-(--radius-card) bg-teal-tint px-4 py-3 text-sm">
+              <span className="font-semibold">How to read the labels</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 font-medium text-teal-dark">
+                <span aria-hidden="true">✓</span>
+                {TRUST_LABEL.checked_against_source}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-tint px-2.5 py-1 font-medium text-amber-ink">
+                <span aria-hidden="true">◦</span>
+                {TRUST_LABEL.hospital_supplied}
+              </span>
+              <Link href="/sources" className="link ml-auto inline-flex min-h-11 items-center">
+                How we source facts
+              </Link>
+            </p>
+          ) : null}
 
           <Pagination base={p.basePath} query={listing.query} page={result.page} pageCount={result.pageCount} />
           {p.children}

@@ -86,6 +86,11 @@ export type BranchCard = {
   state: string;
   stateSlug: string;
   serviceChips: { name: string; status: string }[];
+  /** Shown only while the fact is inside its DATA-03 refresh window; null means "not confirmed", never "no". */
+  emergency: "yes" | "no" | null;
+  /** A current hospital accreditation that an editor checked against its source. */
+  accredited: boolean;
+  lastCheckedAt: string | null;
   nativeReviewCount: number;
   nativeRatingSum: number;
   sourceLinks: { provider: string; code: string; url: string }[];
@@ -167,6 +172,13 @@ const CARD_COLS = sql`
   b.id, b.public_id as "publicId", b.slug, b.display_name as "displayName",
   b.branch_qualifier as "branchQualifier", b.facility_type as "facilityType", b.ownership,
   loc.name as locality, stl.name as settlement, stl.slug as "settlementSlug", st.name as state, st.slug as "stateSlug",
+  case when b.has_emergency in ('yes','no')
+        and b.emergency_checked_at > now() - make_interval(days => ${POLICY.refreshDays.emergency})
+       then b.has_emergency::text end as emergency,
+  exists (select 1 from credential cr where cr.branch_id = b.id
+    and cr.category = 'hospital_accreditation' and cr.status = 'checked_against_source'
+    and (cr.expires_on is null or cr.expires_on >= current_date)) as accredited,
+  b.last_checked_at as "lastCheckedAt",
   coalesce(r.review_count, 0)::int as "nativeReviewCount", coalesce(r.rating_sum, 0)::int as "nativeRatingSum",
   (select c.value from branch_contact c
     where c.branch_id = b.id and c.status = 'checked_against_source' and not c.is_suppressed

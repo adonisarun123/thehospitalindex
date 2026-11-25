@@ -56,6 +56,21 @@ export function listStates(): Promise<GeoWithCounts[]> {
     order by g.name`);
 }
 
+export type CoveredCity = { id: string; name: string; slug: string; state: string; stateSlug: string; published: number };
+
+/** Home page: only settlements that already have published branches, largest first. */
+export function listCoveredCities(limit = 8): Promise<CoveredCity[]> {
+  return many(sql`
+    select g.id, g.name, g.slug, st.name as state, st.slug as "stateSlug", count(b.id)::int as published
+    from hospital_branch b
+    join geography g on g.id = b.settlement_id and g.is_active
+    join geography st on st.id = b.state_id
+    where b.status = 'published'
+    group by g.id, st.id
+    order by count(b.id) desc, g.name
+    limit ${limit}`);
+}
+
 export function getState(slug: string): Promise<Geo | null> {
   return one(sql`select ${geoCols} from geography g
     where g.kind in ('state','union_territory') and g.slug = ${slug} and g.is_active`);
