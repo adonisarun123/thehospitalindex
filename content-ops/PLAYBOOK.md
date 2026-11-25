@@ -12,7 +12,7 @@ the scheduled task's prompt.
 | Hub landing pages (city × specialty, city × service, or city) | 3 | `src/content/hubs/<YYYY-wNN>.ts`, registered in `src/content/hubs/index.ts` |
 
 Everything ships as **one pull request** on branch `content/<YYYY-wNN>` titled
-`Content: week <YYYY-wNN> (4 posts, 3 hubs)`. Nothing is pushed to `main`.
+`Content: week <YYYY-wNN> (4 posts, 3 hubs)`. Nothing is committed to `main`.
 Merging the PR is the editorial review: on the production build,
 `scripts/sync-hub-content.ts` writes hub guidance to the database
 (`hub_content` / `geography.local_context`), which is what makes those hubs
@@ -129,12 +129,24 @@ npx next build
 All must pass. Then re-read each post against its sources one claim at a time.
 Confirm every hub's slugs resolve (state, city, taxon) with a read-only query.
 
-## 5. Open the PR and log it
+## 5. Commit, write the PR description, log it
 
-PR description must contain, per item: title or hub path, the main question,
-the two question-evidence URLs, and any claim you were unsure of. Append one
-line per item to `content-ops/log.md` in the same PR. Tick off used backlog
-items and add 4+ new clusters you came across.
+The weekly run happens on Arun's Mac, where git push is blocked for Claude, so
+the run ends with a local branch and Arun pushes it.
+
+1. Before starting: the working tree must be clean and on `main`, and `main`
+   must be up to date with `origin/main` (`git fetch` then compare). If not,
+   stop and report; never stash, reset or overwrite Arun's work.
+2. Create `content/<YYYY-wNN>` from `main`, add the week's files, commit with
+   message `Content: week <YYYY-wNN> (4 posts, 3 hubs)`.
+3. Write the PR description to `content-ops/prs/<YYYY-wNN>.md` (in the same
+   commit): per item the title or hub path, the main question, the two
+   question-evidence URLs, and any claim you were unsure of.
+4. Append one line per item to `content-ops/log.md`. Tick off used backlog
+   items and add 4+ new clusters you came across.
+5. Report to Arun the two commands to publish for review:
+   `git push -u origin content/<YYYY-wNN>` and
+   `gh pr create --base main --head content/<YYYY-wNN> --title "Content: week <YYYY-wNN>" --body-file content-ops/prs/<YYYY-wNN>.md`
 
 ## Stop and ask a person instead of publishing when
 
