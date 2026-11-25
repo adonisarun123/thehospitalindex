@@ -12,7 +12,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed:reference": "tsx scripts/seed-reference.ts",
-    "db:seed:fixtures": "tsx scripts/seed-dev-fixtures.ts"
+    "db:seed:fixtures": "tsx scripts/seed-dev-fixtures.ts",
+    "db:import:scrape": "python3 scripts/import/import_scrape.py",
+    "db:recompute": "tsx scripts/recompute-derived.ts"
   },
   "dependencies": {
     "@next/third-parties": "16.4.6",

@@ -11,6 +11,8 @@ export type BranchFacts = {
   hasSettlement: boolean;
   /** A locatable address: at least an address line or a postal address string. */
   hasAddress: boolean;
+  /** A current-source assertion (`identity.operating_status`) that the branch is operating. */
+  hasOperatingEvidence: boolean;
   /** Field assertions backed by a source whose rights are current. */
   evidencedAssertions: number;
   /** Public, unsuppressed contact routes with status `checked_against_source`. */
@@ -37,6 +39,7 @@ export function publicationGate(f: BranchFacts): GateResult {
   if (!f.hasState) missing.push("geography.state");
   if (!f.hasSettlement) missing.push("geography.settlement");
   if (!f.hasAddress) missing.push("geography.address");
+  if (!f.hasOperatingEvidence) missing.push("identity.operating_status");
   if (f.evidencedAssertions < 1) missing.push("evidence.authorised_source");
   if (f.checkedContactRoutes < 1) missing.push("contact.checked_route");
   return { pass: missing.length === 0, missing };

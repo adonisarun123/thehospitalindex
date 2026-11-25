@@ -162,3 +162,72 @@ ON CONFLICT ON CONSTRAINT taxonomy_synonym_uq DO NOTHING;
 INSERT INTO external_provider (code, name) VALUES
   ('google_maps','Google'), ('practo','Practo'), ('justdial','Justdial')
 ON CONFLICT (code) DO NOTHING;
+
+-- Taxonomy added for the first sourced import (scrape of 25 Nov 2026), so that
+-- departments and services the source lists keep their own names rather than
+-- being folded into a broader term.
+INSERT INTO specialty (code, slug, name, plain_label, sort_order) VALUES
+  ('radiology','radiology','Radiology','Scans and imaging',210),
+  ('neurosurgery','neurosurgery','Neurosurgery','Brain and spine surgery',220),
+  ('anaesthesiology','anaesthesiology','Anaesthesiology','Anaesthesia',230),
+  ('critical-care','critical-care','Critical Care Medicine','Intensive care',240),
+  ('pathology','pathology','Pathology','Laboratory medicine',250),
+  ('plastic-surgery','plastic-surgery','Plastic Surgery','Plastic and reconstructive surgery',260),
+  ('neonatology','neonatology','Neonatology','Newborn care',270),
+  ('reproductive-medicine','reproductive-medicine','Reproductive Medicine','Fertility and IVF',280),
+  ('cardiothoracic-surgery','cardiothoracic-surgery','Cardiothoracic Surgery','Heart and chest surgery',290),
+  ('surgical-oncology','surgical-oncology','Surgical Oncology','Cancer surgery',300),
+  ('radiation-oncology','radiation-oncology','Radiation Oncology','Radiotherapy for cancer',310),
+  ('rheumatology','rheumatology','Rheumatology','Arthritis and joint inflammation',320),
+  ('paediatric-surgery','paediatric-surgery','Paediatric Surgery','Surgery for children',330),
+  ('vascular-surgery','vascular-surgery','Vascular Surgery','Blood vessel surgery',340),
+  ('oral-maxillofacial-surgery','oral-and-maxillofacial-surgery','Oral and Maxillofacial Surgery','Jaw and face surgery',350),
+  ('haematology','haematology','Haematology','Blood disorders',360),
+  ('geriatrics','geriatrics','Geriatrics','Care of older adults',370),
+  ('infectious-diseases','infectious-diseases','Infectious Diseases','Infections',380),
+  ('paediatric-cardiology','paediatric-cardiology','Paediatric Cardiology','Children''s heart care',390),
+  ('hepatology','hepatology','Hepatology','Liver',400),
+  ('palliative-care','palliative-care','Palliative Care','Comfort and symptom care',410),
+  ('pain-medicine','pain-medicine','Pain Medicine','Pain management',420),
+  ('ayurveda','ayurveda','Ayurveda',NULL,500),
+  ('homoeopathy','homoeopathy','Homoeopathy',NULL,510),
+  ('unani','unani','Unani',NULL,520),
+  ('yoga-naturopathy','yoga-and-naturopathy','Yoga and Naturopathy',NULL,530)
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO service (code, slug, name, plain_label, kind) VALUES
+  ('operation-theatre','operation-theatre','Operation theatre',NULL,'support'),
+  ('endoscopy','endoscopy','Endoscopy',NULL,'procedure'),
+  ('colonoscopy','colonoscopy','Colonoscopy',NULL,'procedure'),
+  ('organ-transplant','organ-transplant','Organ transplant',NULL,'procedure'),
+  ('cardiac-catheterisation','cardiac-catheterisation','Cardiac catheterisation (cath lab)','Cath lab','procedure'),
+  ('angioplasty','angioplasty','Angioplasty',NULL,'procedure'),
+  ('echocardiography','echocardiography','Echocardiography','Heart ultrasound (echo)','diagnostic'),
+  ('ecg','ecg','ECG','Heart tracing','diagnostic'),
+  ('stress-test','stress-test','Cardiac stress test (TMT)','Treadmill test','diagnostic'),
+  ('eeg','eeg','EEG','Brain wave test','diagnostic'),
+  ('mammography','mammography','Mammography','Breast X-ray','diagnostic'),
+  ('doppler','doppler','Doppler ultrasound',NULL,'diagnostic'),
+  ('pulmonary-function-test','pulmonary-function-test','Pulmonary function test','Lung function test','diagnostic'),
+  ('pet-ct','pet-ct','PET-CT scan',NULL,'diagnostic'),
+  ('ventilator','ventilator','Ventilator support',NULL,'support'),
+  ('paediatric-intensive-care','paediatric-intensive-care','Paediatric intensive care (PICU)','PICU','support'),
+  ('high-dependency-unit','high-dependency-unit','High dependency unit (HDU)','HDU','support'),
+  ('cornea-transplant','cornea-transplant','Cornea transplant',NULL,'procedure'),
+  ('hair-transplant','hair-transplant','Hair transplant',NULL,'procedure'),
+  ('radiotherapy','radiotherapy','Radiotherapy',NULL,'procedure'),
+  ('joint-replacement','joint-replacement','Joint replacement',NULL,'procedure'),
+  ('dietetics','dietetics','Dietetics and nutrition',NULL,'support')
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO service_specialty (service_id, specialty_id)
+SELECT v.id, s.id
+FROM (VALUES ('cardiac-catheterisation','cardiology'), ('angioplasty','cardiology'), ('echocardiography','cardiology'),
+             ('stress-test','cardiology'), ('ecg','cardiology'), ('endoscopy','gastroenterology'), ('colonoscopy','gastroenterology'),
+             ('eeg','neurology'), ('mammography','radiology'), ('doppler','radiology'), ('pet-ct','radiology'),
+             ('pulmonary-function-test','pulmonology'), ('radiotherapy','radiation-oncology'), ('cornea-transplant','ophthalmology'),
+             ('joint-replacement','orthopaedics'), ('hair-transplant','dermatology'), ('paediatric-intensive-care','paediatrics'),
+             ('ventilator','critical-care'), ('high-dependency-unit','critical-care')) AS m(service_code, specialty_code)
+JOIN service v ON v.code = m.service_code
+JOIN specialty s ON s.code = m.specialty_code
+ON CONFLICT DO NOTHING;

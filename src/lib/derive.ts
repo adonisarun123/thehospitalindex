@@ -14,6 +14,12 @@ export async function recomputeBranchDerived(db: Pick<Db, "execute">, branchId: 
       (b.address_line1 is not null or b.postal_address is not null) as has_address,
       (b.overview is not null and length(trim(b.overview)) >= 80) as has_overview,
       (b.lat is not null) as has_coords,
+      (b.settlement_id is not null) as has_settlement,
+      exists (select 1 from field_assertion fa join source_record sr on sr.id = fa.source_record_id
+        where fa.branch_id = b.id and fa.field_path = 'identity.operating_status'
+          and fa.status in ('hospital_supplied','checked_against_source')
+          and (fa.effective_to is null or fa.effective_to >= current_date)
+          and (sr.rights_expire_at is null or sr.rights_expire_at > now())) as has_operating_evidence,
       (select count(*) from field_assertion fa join source_record sr on sr.id = fa.source_record_id
         where fa.branch_id = b.id and fa.status in ('hospital_supplied','checked_against_source')
           and (sr.rights_expire_at is null or sr.rights_expire_at > now()))::int as evidenced_assertions,
@@ -47,8 +53,9 @@ export async function recomputeBranchDerived(db: Pick<Db, "execute">, branchId: 
     facilityType: r.facility_type as string,
     status: r.status as string,
     hasState: true, // NOT NULL in the schema
-    hasSettlement: true,
+    hasSettlement: Boolean(r.has_settlement),
     hasAddress: Boolean(r.has_address),
+    hasOperatingEvidence: Boolean(r.has_operating_evidence),
     evidencedAssertions: Number(r.evidenced_assertions),
     checkedContactRoutes: Number(r.checked_contact_routes),
     sourcedOfferings: Number(r.sourced_offerings),

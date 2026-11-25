@@ -18,8 +18,8 @@ export const metadata: Metadata = { alternates: { canonical: SITE_URL } };
 
 /** PRD-03: the three labels open the page, because they are what sets the directory apart. */
 const LABELS = [
-  { badge: TRUST_LABEL.checked_against_source, tone: "bg-teal-tint text-teal-dark", glyph: "✓", text: "An editor compared it with an official register or the branch’s own desk." },
-  { badge: TRUST_LABEL.hospital_supplied, tone: "bg-amber-tint text-amber-ink", glyph: "◦", text: "The hospital told us. Recorded with the date, not yet confirmed independently." },
+  { badge: TRUST_LABEL.checked_against_source, tone: "bg-teal-tint text-teal-dark", glyph: "✓", text: "Matched against an official register, such as NABH, or the branch’s own desk." },
+  { badge: TRUST_LABEL.hospital_supplied, tone: "bg-amber-tint text-amber-ink", glyph: "◦", text: "The hospital told us or published it on its own website. Recorded with the date, not yet confirmed independently." },
   { badge: VISIT_LABEL, tone: "bg-teal-tint text-teal-dark", glyph: "✓", text: "A review from a patient whose bill or prescription we matched to a visit." },
 ];
 

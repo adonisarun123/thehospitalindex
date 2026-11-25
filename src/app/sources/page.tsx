@@ -21,9 +21,9 @@ export default function Sources() {
       <h2>The labels</h2>
       <dl>
         <dt id="hospital-supplied">Hospital supplied</dt>
-        <dd>The hospital told us this. We have recorded it and when we received it, but have not confirmed it against an independent source.</dd>
+        <dd>The hospital told us this or published it on its own website. We have recorded it and when we read it, but have not confirmed it against an independent source.</dd>
         <dt id="checked-against-source">Checked against source</dt>
-        <dd>An editor compared this fact with a source outside our own records, such as an official register or the branch’s own desk, on the date shown.</dd>
+        <dd>This fact was matched against a source outside our own records, such as an official register (for example the NABH register) or the branch’s own desk, on the date shown.</dd>
         <dt id="visit-evidence-checked">Visit evidence checked</dt>
         <dd>
           Applies to patient reviews only. See <Link href="/how-reviews-work" className="link">how reviews work</Link>.
@@ -32,6 +32,26 @@ export default function Sources() {
         <dd>A link to the same branch on another platform. Their scores are theirs; we do not copy or count them.</dd>
       </dl>
       <p>Facts we cannot place in one of these categories are not shown. A detail that is missing is unknown, not unavailable.</p>
+
+      <h2 id="data-sources">Where the listings come from</h2>
+      <ul>
+        <li>
+          <strong>NABH register</strong> (nabh.co): accreditation, certification and empanelment status, with the branch’s address and contact
+          details as listed with NABH. Each credential links to its entry on the register.
+        </li>
+        <li>
+          <strong>National Hospital Directory</strong> and the <strong>NIN health facility register</strong>, published on data.gov.in under the
+          Government Open Data License – India. Facts found only in these directories are held back until a second source confirms them.
+        </li>
+        <li>
+          <strong>Hospitals’ own websites</strong>: departments, services, beds, emergency information and the insurers a hospital lists. These are
+          labelled “Hospital supplied”. Facts from a hospital group’s website that do not say which branch they apply to are not shown.
+        </li>
+      </ul>
+      <p>
+        A branch is listed only when it has a name, a town, an address, current evidence that it is operating and at least one checked way to
+        contact it. Branches still missing any of these stay off the site until the gap is filled.
+      </p>
 
       <h2>Facts that go stale</h2>
       <p>

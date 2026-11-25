@@ -8,6 +8,7 @@ const core: BranchFacts = {
   hasState: true,
   hasSettlement: true,
   hasAddress: true,
+  hasOperatingEvidence: true,
   evidencedAssertions: 1,
   checkedContactRoutes: 1,
   sourcedOfferings: 0,
@@ -29,6 +30,12 @@ describe("publication gate (DATA-06)", () => {
     const r = publicationGate({ ...core, evidencedAssertions: 0 });
     expect(r.pass).toBe(false);
     expect(r.missing).toContain("evidence.authorised_source");
+  });
+  it("needs current evidence that the branch is operating", () => {
+    expect(publicationGate({ ...core, hasOperatingEvidence: false }).missing).toEqual(["identity.operating_status"]);
+  });
+  it("needs a settlement", () => {
+    expect(publicationGate({ ...core, hasSettlement: false }).missing).toEqual(["geography.settlement"]);
   });
   it("needs a checked contact route, not just any contact", () => {
     expect(publicationGate({ ...core, checkedContactRoutes: 0 }).missing).toEqual(["contact.checked_route"]);

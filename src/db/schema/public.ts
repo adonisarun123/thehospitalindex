@@ -128,13 +128,16 @@ export const capacityMetric = pgEnum("capacity_metric", [
   "isolation_rooms",
 ]);
 export const payerKind = pgEnum("payer_kind", ["insurer", "tpa", "government_scheme"]);
-export const payerMode = pgEnum("payer_mode", ["cashless", "reimbursement_assistance", "government_empanelment"]);
+/** `listed_by_hospital`: the hospital lists the payer but does not say what the arrangement is. */
+export const payerMode = pgEnum("payer_mode", ["cashless", "reimbursement_assistance", "government_empanelment", "listed_by_hospital"]);
 export const sourceKind = pgEnum("source_kind", [
   "authority_register",
   "hospital_submission",
   "editor_verified_public",
   "licensed_dataset",
   "open_dataset",
+  /** The branch's or its network's own public website, read without the hospital submitting anything. */
+  "hospital_website",
 ]);
 export const linkMatch = pgEnum("link_match_status", ["proposed", "confirmed_branch", "network_level", "ambiguous", "rejected"]);
 export const redirectKind = pgEnum("redirect_kind", ["rename", "merge", "geography_rename", "removed"]);
@@ -309,9 +312,8 @@ export const hospitalBranch = pgTable(
       .notNull()
       .references(() => geography.id, { onDelete: "restrict" }),
     districtId: uuid("district_id").references(() => geography.id, { onDelete: "restrict" }),
-    settlementId: uuid("settlement_id")
-      .notNull()
-      .references(() => geography.id, { onDelete: "restrict" }),
+    /** Nullable only while staged: imports may lack a town; publishing needs one (check below). */
+    settlementId: uuid("settlement_id").references(() => geography.id, { onDelete: "restrict" }),
     localityId: uuid("locality_id").references(() => geography.id, { onDelete: "restrict" }),
     addressLine1: text("address_line1"),
     addressLine2: text("address_line2"),
@@ -361,6 +363,10 @@ export const hospitalBranch = pgTable(
     check(
       "hospital_branch_published_needs_gate",
       sql`${t.status} <> 'published' or ${t.passesPublicationGate}`,
+    ),
+    check(
+      "hospital_branch_published_needs_settlement",
+      sql`${t.status} <> 'published' or ${t.settlementId} is not null`,
     ),
     check("hospital_branch_index_needs_publish", sql`not ${t.isIndexable} or ${t.status} = 'published'`),
   ],
