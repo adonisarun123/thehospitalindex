@@ -1,5 +1,6 @@
 import type { Block, Post } from "@/content/types";
 import { post as admission } from "./admission";
+import { post as beforeSurgery } from "./before-surgery";
 import { post as branch } from "./branch";
 import { post as cashless } from "./cashless";
 import { post as choose } from "./choose-hospital-branch";
@@ -7,11 +8,14 @@ import { post as emergency } from "./emergency";
 import { post as nabh } from "./nabh";
 import { post as pmjay } from "./pmjay";
 import { post as records } from "./records";
+import { post as reimbursement } from "./reimbursement";
 import { post as reviews } from "./reviews";
 import { post as rights } from "./rights";
+import { post as roomRent } from "./room-rent";
 import { post as terms } from "./terms";
+import { post as unpaidBill } from "./unpaid-bill";
 
-const ALL: Post[] = [choose, emergency, cashless, pmjay, rights, records, nabh, admission, branch, reviews, terms];
+const ALL: Post[] = [choose, emergency, cashless, pmjay, rights, records, nabh, admission, branch, reviews, terms, roomRent, reimbursement, unpaidBill, beforeSurgery];
 
 /** Newest first; ties keep the editorial order above. */
 export const posts: Post[] = [...ALL].sort((a, b) => b.datePublished.localeCompare(a.datePublished));

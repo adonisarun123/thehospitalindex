@@ -10,8 +10,8 @@ export const post: Post = {
   category: "Patient rights",
   keywords: ["patient rights India", "Charter of Patients Rights", "NHRC patient charter", "hospital complaint India", "informed consent", "second opinion"],
   datePublished: "2026-11-23",
-  dateModified: "2026-11-23",
-  factsCheckedOn: "2026-11-23",
+  dateModified: "2026-11-25",
+  factsCheckedOn: "2026-11-25",
   summary:
     "The Charter of Patients’ Rights was drafted by the National Human Rights Commission in 2018, shared by the Ministry of Health with the states in 2019, and updated in August 2021 to list 20 rights and six responsibilities. It collects rights found in the Constitution, medical ethics regulations, consumer law and court judgments. How it is enforced depends on your state’s clinical establishments law.",
   body: [
@@ -46,7 +46,7 @@ export const post: Post = {
         "**Choice.** To choose between alternative treatments where they exist, and to buy medicines or get tests done from any registered pharmacy or laboratory.",
         "**Fair referral and transfer.** To be referred or transferred for medical reasons, not commercial ones.",
         "**Protection in research.** To protection if you take part in a clinical trial or biomedical research.",
-        "**Discharge.** To be discharged, or to receive the body of a deceased relative, without being held back because of a dispute over the bill.",
+        "**Release of a body.** The 2021 version says the release of a deceased patient’s body cannot be denied for any reason. (The 2018 draft also said a living patient must not be detained over a bill dispute; see [unpaid bills and discharge](/blog/can-hospital-detain-patient-unpaid-bill-india).)",
         "**Education.** To information about your condition, healthy living and the schemes you may be entitled to.",
         "**Grievance redressal.** To be heard, and to seek redress through the hospital and the authorities.",
       ],
@@ -78,7 +78,7 @@ export const post: Post = {
     },
     {
       q: "Can a hospital refuse to discharge me until the bill is paid?",
-      a: "The charter says a patient has the right to be discharged, and relatives to receive the body of a deceased patient, without being detained on procedural grounds such as a dispute over payment. Patients are also responsible for paying agreed charges on time.",
+      a: "The 2021 charter says the release of a deceased patient’s body cannot be denied for any reason, and asks patients to settle agreed charges at discharge. Holding a living patient against their will can amount to wrongful confinement, and courts have criticised the practice. Our guide to [unpaid bills and discharge](/blog/can-hospital-detain-patient-unpaid-bill-india) explains what to do.",
     },
     {
       q: "Do I have to buy medicines from the hospital pharmacy?",
