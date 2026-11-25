@@ -137,9 +137,10 @@ itself (Desktop Commander), where Arun's GitHub login is available; the
 sandbox shell cannot push.
 
 1. Before starting: the working tree must be clean and on `main`. Run
-   `git fetch origin`. If local `main` is behind or has diverged from
-   `origin/main`, or the tree is dirty, stop and report; never stash, reset or
-   overwrite Arun's work. Branch from local `main`.
+   `git fetch origin`. If local `main` is only behind `origin/main`, run
+   `git merge --ff-only origin/main`. If it has diverged, or the tree is
+   dirty, stop and report; never stash, reset or overwrite Arun's work.
+   Branch from local `main`.
 2. Create `content/<YYYY-wNN>`, add the week's files, commit with message
    `Content: week <YYYY-wNN> (4 posts, 3 hubs)`.
 3. Write the PR description to `content-ops/prs/<YYYY-wNN>.md` in the same
