@@ -40,3 +40,25 @@ export type Post = {
   sources: Source[];
   related: string[];
 };
+
+/**
+ * Landing copy for a listing hub (city, or city × specialty/service). The
+ * module in the repo is the source of truth; merging it to `main` is the
+ * editorial review. `scripts/sync-hub-content.ts` copies `guidance` into the
+ * database on production builds, which is what makes the hub indexable
+ * (SEO-01). FAQs and sources render from this module.
+ */
+export type HubPage = {
+  kind: "city" | "city-specialty" | "city-service";
+  /** Slugs as they appear in the URL. `taxon` is required unless kind is "city". */
+  state: string;
+  city: string;
+  taxon?: string;
+  /** Plain text, no marks, one paragraph, 90–220 words. Shown above the listing. */
+  guidance: string;
+  /** 3–6 questions people actually ask about this hub; answers may use inline marks. */
+  faqs: Faq[];
+  sources: Source[];
+  datePublished: string;
+  factsCheckedOn: string;
+};

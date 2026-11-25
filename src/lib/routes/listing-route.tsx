@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 import type { Crumb } from "@/components/breadcrumbs";
+import { HubFaqs } from "@/components/hub-faqs";
 import { HubSummary } from "@/components/hub-summary";
 import { ListingView } from "@/components/listing-view";
+import { getHubPage } from "@/content/hubs";
 import { hubIsIndexable } from "@/lib/gates";
 import { listingRobots, loadListing, type ListingInput, type SearchParams } from "@/lib/listing";
 import { POLICY } from "@/lib/policy";
@@ -86,6 +88,8 @@ export function buildListingRoute<P extends Record<string, string>>(resolve: (pa
 
   async function Page(props: RouteProps<P>) {
     const { d, listing } = await run(props);
+    // Reviewed FAQs and sources for this hub, on the canonical first page only.
+    const hub = !listing.hasFilters && listing.result.page === 1 ? getHubPage(d.basePath) : undefined;
     return (
       <ListingView
         basePath={d.basePath}
@@ -103,6 +107,7 @@ export function buildListingRoute<P extends Record<string, string>>(resolve: (pa
         }
       >
         {d.extras}
+        {hub ? <HubFaqs path={d.basePath} hub={hub} /> : null}
       </ListingView>
     );
   }
